@@ -11,6 +11,8 @@ NOTEBOOK = ROOT / "Rt-covid19.ipynb"
 README = ROOT / "README.md"
 REQUIREMENTS = ROOT / "requirements.txt"
 PROVENANCE = ROOT / "DATA_PROVENANCE.md"
+DOCS_PLANS = ROOT / "docs" / "plans"
+CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-rt-covid19-baseline.md"
 
 IMPORT_TO_REQUIREMENT = {
     "IPython": "ipython",
@@ -38,6 +40,19 @@ def requirement_names():
 
 def main():
     failures = []
+
+    if not CANONICAL_PLAN.exists():
+        failures.append("docs/plans/2026-06-08-rt-covid19-baseline.md is missing")
+
+    docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
+    if not docs_plans:
+        failures.append("docs/plans must contain at least one completed plan")
+    for plan_path in docs_plans:
+        plan = plan_path.read_text(encoding="utf-8")
+        if "Status: Completed" not in plan or "make check" not in plan:
+            failures.append(
+                f"{plan_path.relative_to(ROOT)} must record completed status and make check verification"
+            )
 
     if not NOTEBOOK.exists():
         failures.append("Rt-covid19.ipynb is missing")

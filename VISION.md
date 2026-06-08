@@ -18,6 +18,7 @@ Priority:
 - Preserve the notebook narrative and formulas
 - Keep assumptions about likelihoods, priors, and serial interval visible
 - Avoid presenting historical estimates as current public-health guidance
+- Keep completed maintenance plans under `docs/plans`
 - Keep security and responsible-use metadata available
 
 Next priorities:

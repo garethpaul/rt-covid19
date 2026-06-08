@@ -12,3 +12,5 @@
 - Added `make verify` as the repository verification command.
 - Added `DATA_PROVENANCE.md` with runtime download, refresh status,
   preprocessing, and interpretation notes.
+- Added canonical `docs/plans` coverage and made the notebook provenance
+  checker require completed plans.
