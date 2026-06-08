@@ -40,7 +40,6 @@ Canonical security policy and reporting:
 
 - [`SECURITY.md`](SECURITY.md)
 
-
 Public-health analysis can be misread as operational advice. The notebook
 should clearly label assumptions, stale data, and limitations, and should not
 replace official public-health guidance.
