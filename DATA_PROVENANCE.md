@@ -15,6 +15,10 @@ No data refresh was performed on 2026-06-08. Because the notebook reads the NYT
 `master` branch at runtime, results depend on the date and network response of
 the notebook execution environment.
 
+The committed notebook is source-only. Execution counts and rendered outputs are
+stripped so checked-in artifacts do not imply that a fresh dataset download or
+public-health update occurred.
+
 ## Preprocessing
 
 The notebook:

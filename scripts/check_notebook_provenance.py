@@ -75,6 +75,18 @@ def main():
         failures.append("requirements.txt is missing or empty")
 
     if notebook:
+        for index, cell in enumerate(notebook.get("cells", []), start=1):
+            if cell.get("cell_type") != "code":
+                continue
+            if cell.get("execution_count") is not None:
+                failures.append(
+                    f"Rt-covid19.ipynb code cell {index} must not store an execution_count"
+                )
+            if cell.get("outputs"):
+                failures.append(
+                    f"Rt-covid19.ipynb code cell {index} must not store execution outputs"
+                )
+
         sources = "\n".join(
             "".join(cell.get("source", []))
             for cell in notebook.get("cells", [])

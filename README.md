@@ -53,11 +53,14 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - The notebook reads county case data from `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`.
 - See `DATA_PROVENANCE.md` for runtime download behavior, preprocessing notes,
   and refresh status.
+- The committed notebook is source-only: execution counts and rendered outputs
+  are intentionally stripped to avoid presenting stale results as a refresh.
 - This is a historical educational analysis and is not current public-health guidance.
 
 ## Testing and Verification
 
 - `make check` validates notebook JSON, dependency documentation, and data-source provenance.
+- `make check` also rejects stored notebook outputs and execution counts.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -76,6 +79,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-08-rt-covid19-baseline.md` for the canonical
   notebook provenance baseline.
+- See `docs/plans/2026-06-08-strip-notebook-outputs.md` for the source-only
+  notebook output policy.
 
 ## Contributing
 

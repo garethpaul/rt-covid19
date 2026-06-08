@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Stripped stale notebook outputs and execution counts, and made the provenance
+  checker enforce source-only notebook commits.
 - Added `make check` as the shared repository verification alias.
 - Added a notebook provenance check for dependency coverage, notebook JSON, and
   the visible NYT county data source.
