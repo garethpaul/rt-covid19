@@ -40,7 +40,7 @@ Public-health analysis can be misread as operational advice. The notebook
 should clearly label assumptions, stale data, and limitations, and should not
 replace official public-health guidance.
 
-## What We Will Not Merge For Now
+## What We Will Not Merge (For Now)
 
 - Current-risk claims without fresh sourced data
 - Dataset refreshes without provenance
