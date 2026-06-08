@@ -49,7 +49,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make verify` validates notebook JSON, dependency documentation, and data-source provenance.
+- `make check` validates notebook JSON, dependency documentation, and data-source provenance.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

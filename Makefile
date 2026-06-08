@@ -1,4 +1,4 @@
-.PHONY: lint test build verify
+.PHONY: build check lint test verify
 
 lint:
 	python3 scripts/check_notebook_provenance.py
@@ -9,3 +9,5 @@ build:
 	python3 -m json.tool Rt-covid19.ipynb >/dev/null
 
 verify: lint test build
+
+check: verify

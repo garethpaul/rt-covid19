@@ -2,6 +2,7 @@
 
 ## 2026-06-08
 
+- Added `make check` as the shared repository verification alias.
 - Added a notebook provenance check for dependency coverage, notebook JSON, and
   the visible NYT county data source.
 - Added `requirements.txt` for the notebook imports, with `pandas<2` for the
