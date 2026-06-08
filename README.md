@@ -1,7 +1,9 @@
 # README
 
-Note: this takes some great work by many others including Kevin Systrom, Frank Dellaert and Adam Lerer.
+<!-- README-OVERVIEW-IMAGE -->
+![Project overview](docs/readme-overview.svg)
 
+Note: this takes some great work by many others including Kevin Systrom, Frank Dellaert and Adam Lerer.
 
 ## Bettencourt & Ribeiro's Approach
 
@@ -14,7 +16,6 @@ This says that, having seen ![](https://latex.codecogs.com/gif.latex?k) new case
 - The __likelihood__ of seeing ![](https://latex.codecogs.com/gif.latex?k) new cases given ![](https://latex.codecogs.com/gif.latex?R%20t) times ...
 - The __prior__ beliefs of the value of ![](http://latex2png.com/pngs/55c520f27fd1a1698ec73a1806d4671f.png) without the data ...
 - divided by the probability of seeing this many cases in general.
-
 
 ### Choosing a Likelihood Function ![](http://latex2png.com/pngs/b052b2758dd8d29c53c14a7346054746.png)
 
