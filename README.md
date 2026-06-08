@@ -27,23 +27,27 @@ Additional scan context:
 ### Prerequisites
 
 - Git
+- Python 3 with Jupyter-compatible notebook tooling
 
 ### Setup
 
 ```bash
 git clone https://github.com/garethpaul/rt-covid19.git
 cd rt-covid19
+python3 -m pip install -r requirements.txt
 ```
 
 The setup commands above are derived from repository files. Legacy mobile, Python, or JavaScript samples may require older SDKs or package versions than a modern workstation uses by default.
 
 ## Running or Using the Project
 
-- No single runtime entry point was identified. Start by reading the source files and manifests listed above.
+- Open `Rt-covid19.ipynb` in Jupyter or another compatible notebook viewer.
+- The notebook reads county case data from `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`.
+- This is a historical educational analysis and is not current public-health guidance.
 
 ## Testing and Verification
 
-- No dedicated automated test command was identified from the checked-in files. Verify changes by running the relevant build or manually exercising the sample.
+- `make verify` validates notebook JSON, dependency documentation, and data-source provenance.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

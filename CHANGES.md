@@ -1,0 +1,11 @@
+# Changes
+
+## 2026-06-08
+
+- Added a notebook provenance check for dependency coverage, notebook JSON, and
+  the visible NYT county data source.
+- Added `requirements.txt` for the notebook imports, with `pandas<2` for the
+  legacy `read_csv(..., squeeze=True)` usage.
+- Documented the data source and clarified that the notebook is not current
+  public-health guidance.
+- Added `make verify` as the repository verification command.
