@@ -22,6 +22,16 @@ IMPORT_TO_REQUIREMENT = {
     "scipy": "scipy",
 }
 
+REQUIRED_NOTEBOOK_ASSIGNMENTS = [
+    "FILTERED_REGIONS",
+    "no_lockdown",
+    "partial_lockdown",
+    "FULL_COLOR",
+    "NONE_COLOR",
+    "PARTIAL_COLOR",
+    "ERROR_BAR_COLOR",
+]
+
 
 def requirement_names():
     if not REQUIREMENTS.exists():
@@ -92,6 +102,10 @@ def main():
             for cell in notebook.get("cells", [])
             if cell.get("cell_type") == "code"
         )
+        for name in REQUIRED_NOTEBOOK_ASSIGNMENTS:
+            if not re.search(rf"^{re.escape(name)}\s*=", sources, flags=re.MULTILINE):
+                failures.append(f"Rt-covid19.ipynb must define {name} before plotting summaries")
+
         imported_modules = set(re.findall(r"^(?:import|from)\s+([A-Za-z_][\w]*)", sources, flags=re.MULTILINE))
         for module in sorted(imported_modules):
             expected = IMPORT_TO_REQUIREMENT.get(module)

@@ -28,6 +28,12 @@ The notebook:
 - starts each county after the last zero-case day;
 - applies Gaussian smoothing to reduce reporting noise before estimating Rt.
 
+## Presentation Defaults
+
+The notebook defines neutral plotting defaults for filtered regions, lockdown
+status groups, and summary colors so later visualization cells have explicit
+inputs. The defaults do not encode current policy or public-health status.
+
 ## Interpretation
 
 This repository is a historical educational analysis, not current public-health guidance.

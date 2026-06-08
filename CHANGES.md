@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Added neutral notebook presentation defaults and validation so summary
+  plotting cells do not depend on undefined symbols.
 - Stripped stale notebook outputs and execution counts, and made the provenance
   checker enforce source-only notebook commits.
 - Added `make check` as the shared repository verification alias.

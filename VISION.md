@@ -20,6 +20,7 @@ Priority:
 - Avoid presenting historical estimates as current public-health guidance
 - Keep committed notebooks free of stale execution outputs and counts
 - Keep completed maintenance plans under `docs/plans`
+- Keep notebook presentation defaults explicit and non-authoritative
 - Keep security and responsible-use metadata available
 
 Next priorities:

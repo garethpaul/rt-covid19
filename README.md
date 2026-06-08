@@ -61,6 +61,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - `make check` validates notebook JSON, dependency documentation, and data-source provenance.
 - `make check` also rejects stored notebook outputs and execution counts.
+- `make check` also verifies that summary-plot presentation defaults are
+  defined in the notebook.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -81,6 +83,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   notebook provenance baseline.
 - See `docs/plans/2026-06-08-strip-notebook-outputs.md` for the source-only
   notebook output policy.
+- See `docs/plans/2026-06-08-notebook-presentation-defaults.md` for the
+  summary-plot default guard.
 
 ## Contributing
 
