@@ -46,3 +46,6 @@ replace official public-health guidance.
 - Dataset refreshes without provenance
 - Model changes without explanation and comparison
 - Removal of uncertainty or limitation notes
+
+This list is a roadmap guardrail, not a permanent rule.
+Strong user demand and strong technical rationale can change it.
