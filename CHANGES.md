@@ -9,3 +9,5 @@
 - Documented the data source and clarified that the notebook is not current
   public-health guidance.
 - Added `make verify` as the repository verification command.
+- Added `DATA_PROVENANCE.md` with runtime download, refresh status,
+  preprocessing, and interpretation notes.

@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK = ROOT / "Rt-covid19.ipynb"
 README = ROOT / "README.md"
 REQUIREMENTS = ROOT / "requirements.txt"
+PROVENANCE = ROOT / "DATA_PROVENANCE.md"
 
 IMPORT_TO_REQUIREMENT = {
     "IPython": "ipython",
@@ -50,6 +51,10 @@ def main():
     if not readme_text:
         failures.append("README.md is missing or empty")
 
+    provenance_text = PROVENANCE.read_text(encoding="utf-8") if PROVENANCE.exists() else ""
+    if not provenance_text:
+        failures.append("DATA_PROVENANCE.md is missing or empty")
+
     requirements = requirement_names()
     if not requirements:
         failures.append("requirements.txt is missing or empty")
@@ -73,9 +78,17 @@ def main():
         for url in data_urls:
             if url not in readme_text:
                 failures.append(f"README.md must document notebook data source {url}")
+            if url not in provenance_text:
+                failures.append(f"DATA_PROVENANCE.md must document notebook data source {url}")
 
     if "not current public-health guidance" not in readme_text.lower():
         failures.append("README.md must state that the notebook is not current public-health guidance")
+    if "not current public-health guidance" not in provenance_text.lower():
+        failures.append("DATA_PROVENANCE.md must state that the notebook is not current public-health guidance")
+    if "no data refresh was performed on 2026-06-08" not in provenance_text.lower():
+        failures.append("DATA_PROVENANCE.md must document the 2026-06-08 refresh status")
+    if "gaussian smoothing" not in provenance_text.lower():
+        failures.append("DATA_PROVENANCE.md must document notebook preprocessing assumptions")
 
     if failures:
         print("Notebook provenance checks failed:")

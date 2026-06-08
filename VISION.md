@@ -22,8 +22,7 @@ Priority:
 
 Next priorities:
 
-- Document data sources, download dates, and preprocessing steps
-- Add an environment file for notebook dependencies
+- Document Python environment constraints beyond `requirements.txt`
 - Move reusable calculations into testable Python functions
 - Add notes on uncertainty, limitations, and interpretation
 

@@ -43,6 +43,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - Open `Rt-covid19.ipynb` in Jupyter or another compatible notebook viewer.
 - The notebook reads county case data from `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`.
+- See `DATA_PROVENANCE.md` for runtime download behavior, preprocessing notes,
+  and refresh status.
 - This is a historical educational analysis and is not current public-health guidance.
 
 ## Testing and Verification
