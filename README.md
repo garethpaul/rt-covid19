@@ -68,4 +68,4 @@ Keep changes small and tied to the project that is already present in this repos
 
 Prior README summary:
 
-> README <!-- README-OVERVIEW-IMAGE --> Note: this takes some great work by many others including Kevin Systrom, Frank Dellaert and Adam Lerer. Bettencourt & Ribeiro's Approach This is Bayes' Theorem as we'll use it: This says that, having seen ![](https://latex.codecogs.com/gif.latex?k) new cases, we believe the distribution of ![](http://latex2png.com/pngs/cb92211b07c408887c48e69a7894871e.png) is equal to:
+> README Note: this takes some great work by many others including Kevin Systrom, Frank Dellaert and Adam Lerer. Bettencourt & Ribeiro's Approach This is Bayes' Theorem as we'll use it: This says that, having seen ![](https://latex.codecogs.com/gif.latex?k) new cases, we believe the distribution of ![](http://latex2png.com/pngs/cb92211b07c408887c48e69a7894871e.png) is equal to:
