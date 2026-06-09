@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added notebook kernel-version provenance checks so README and
+  `DATA_PROVENANCE.md` document the recorded Python 3.6.7 runtime context.
 - Removed empty trailing notebook code cells and added validation so committed
   source-only notebooks do not carry unfinished analysis placeholders.
 

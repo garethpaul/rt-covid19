@@ -36,6 +36,8 @@ Additional scan context:
 
 - Git
 - Python 3 with Jupyter-compatible notebook tooling
+- The checked-in notebook metadata records a Python 3.6.7 kernel; use a
+  compatible environment for historical reproduction.
 
 ### Setup
 
@@ -53,6 +55,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - The notebook reads county case data from `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`.
 - See `DATA_PROVENANCE.md` for runtime download behavior, preprocessing notes,
   and refresh status.
+- The notebook metadata records Python 3.6.7 as the historical kernel version.
 - The committed notebook is source-only: execution counts and rendered outputs
   are intentionally stripped to avoid presenting stale results as a refresh.
 - This is a historical educational analysis and is not current public-health guidance.
@@ -65,6 +68,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   not carry unfinished analysis placeholders.
 - `make check` also verifies that summary-plot presentation defaults are
   defined in the notebook.
+- `make check` also verifies that README and provenance notes document the
+  notebook's recorded Python 3.6.7 kernel version.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -89,6 +94,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   summary-plot default guard.
 - See `docs/plans/2026-06-09-empty-code-cell-guard.md` for the empty code-cell
   guard.
+- See `docs/plans/2026-06-09-kernel-version-provenance.md` for the notebook
+  kernel-version provenance guard.
 
 ## Contributing
 

@@ -85,6 +85,18 @@ def main():
         failures.append("requirements.txt is missing or empty")
 
     if notebook:
+        language_info = notebook.get("metadata", {}).get("language_info", {})
+        kernel_version = language_info.get("version", "")
+        documented_kernel_version = kernel_version.split("-", 1)[0]
+        if not documented_kernel_version:
+            failures.append("Rt-covid19.ipynb must record language_info.version")
+        else:
+            kernel_phrase = f"Python {documented_kernel_version}"
+            if kernel_phrase not in readme_text:
+                failures.append(f"README.md must document notebook kernel version {kernel_phrase}")
+            if kernel_phrase not in provenance_text:
+                failures.append(f"DATA_PROVENANCE.md must document notebook kernel version {kernel_phrase}")
+
         for index, cell in enumerate(notebook.get("cells", []), start=1):
             if cell.get("cell_type") != "code":
                 continue
