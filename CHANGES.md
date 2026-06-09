@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-09
+
+- Removed empty trailing notebook code cells and added validation so committed
+  source-only notebooks do not carry unfinished analysis placeholders.
+
 ## 2026-06-08
 
 - Added neutral notebook presentation defaults and validation so summary

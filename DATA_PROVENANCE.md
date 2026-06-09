@@ -18,6 +18,8 @@ the notebook execution environment.
 The committed notebook is source-only. Execution counts and rendered outputs are
 stripped so checked-in artifacts do not imply that a fresh dataset download or
 public-health update occurred.
+Empty code cells are also removed so the notebook does not contain unfinished
+analysis placeholders.
 
 ## Preprocessing
 

@@ -19,6 +19,7 @@ Priority:
 - Keep assumptions about likelihoods, priors, and serial interval visible
 - Avoid presenting historical estimates as current public-health guidance
 - Keep committed notebooks free of stale execution outputs and counts
+- Keep committed notebooks free of empty placeholder code cells
 - Keep completed maintenance plans under `docs/plans`
 - Keep notebook presentation defaults explicit and non-authoritative
 - Keep security and responsible-use metadata available

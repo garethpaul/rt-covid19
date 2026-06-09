@@ -96,6 +96,8 @@ def main():
                 failures.append(
                     f"Rt-covid19.ipynb code cell {index} must not store execution outputs"
                 )
+            if not "".join(cell.get("source", [])).strip():
+                failures.append(f"Rt-covid19.ipynb code cell {index} must not be empty")
 
         sources = "\n".join(
             "".join(cell.get("source", []))
