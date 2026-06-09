@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Required `matplotlibrc` to use the Agg backend for headless historical
+  notebook reproduction.
 - Added validation and provenance notes for the `pandas<2` constraint required
   by the notebook's legacy `read_csv(..., squeeze=True)` usage.
 - Added notebook kernel-version provenance checks so README and

@@ -11,6 +11,7 @@ NOTEBOOK = ROOT / "Rt-covid19.ipynb"
 README = ROOT / "README.md"
 REQUIREMENTS = ROOT / "requirements.txt"
 PROVENANCE = ROOT / "DATA_PROVENANCE.md"
+MATPLOTLIBRC = ROOT / "matplotlibrc"
 DOCS_PLANS = ROOT / "docs" / "plans"
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-rt-covid19-baseline.md"
 KERNEL_VERSION_PLAN = DOCS_PLANS / "2026-06-09-kernel-version-provenance.md"
@@ -89,6 +90,12 @@ def main():
     provenance_text = PROVENANCE.read_text(encoding="utf-8") if PROVENANCE.exists() else ""
     if not provenance_text:
         failures.append("DATA_PROVENANCE.md is missing or empty")
+
+    matplotlibrc_text = MATPLOTLIBRC.read_text(encoding="utf-8") if MATPLOTLIBRC.exists() else ""
+    if not matplotlibrc_text:
+        failures.append("matplotlibrc is missing or empty")
+    elif not re.search(r"^backend\s*:\s*Agg\s*$", matplotlibrc_text, flags=re.MULTILINE):
+        failures.append("matplotlibrc must set backend : Agg for headless notebook reproduction")
 
     requirement_specs = requirement_lines()
     requirements = requirement_names()
