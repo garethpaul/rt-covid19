@@ -24,6 +24,7 @@ Priority:
 - Keep legacy pandas compatibility constraints explicit while notebook source
   depends on them
 - Keep Matplotlib configured for headless reproduction runs
+- Keep notebook and provenance URL references on HTTPS
 - Keep completed maintenance plans under `docs/plans`
 - Keep notebook presentation defaults explicit and non-authoritative
 - Keep security and responsible-use metadata available

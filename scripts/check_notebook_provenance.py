@@ -91,6 +91,15 @@ def main():
     if not provenance_text:
         failures.append("DATA_PROVENANCE.md is missing or empty")
 
+    docs_with_urls = {
+        "README.md": readme_text,
+        "DATA_PROVENANCE.md": provenance_text,
+    }
+    for doc_name, doc_text in docs_with_urls.items():
+        insecure_urls = sorted(set(re.findall(r"http://[^\s)\]\"']+", doc_text)))
+        for url in insecure_urls:
+            failures.append(f"{doc_name} must use HTTPS URLs, found {url}")
+
     matplotlibrc_text = MATPLOTLIBRC.read_text(encoding="utf-8") if MATPLOTLIBRC.exists() else ""
     if not matplotlibrc_text:
         failures.append("matplotlibrc is missing or empty")
@@ -132,19 +141,27 @@ def main():
         sources = "\n".join(
             "".join(cell.get("source", []))
             for cell in notebook.get("cells", [])
+        )
+        insecure_notebook_urls = sorted(set(re.findall(r"http://[^\s)\]\"']+", sources)))
+        for url in insecure_notebook_urls:
+            failures.append(f"Rt-covid19.ipynb must use HTTPS URLs, found {url}")
+
+        code_sources = "\n".join(
+            "".join(cell.get("source", []))
+            for cell in notebook.get("cells", [])
             if cell.get("cell_type") == "code"
         )
         for name in REQUIRED_NOTEBOOK_ASSIGNMENTS:
-            if not re.search(rf"^{re.escape(name)}\s*=", sources, flags=re.MULTILINE):
+            if not re.search(rf"^{re.escape(name)}\s*=", code_sources, flags=re.MULTILINE):
                 failures.append(f"Rt-covid19.ipynb must define {name} before plotting summaries")
 
-        imported_modules = set(re.findall(r"^(?:import|from)\s+([A-Za-z_][\w]*)", sources, flags=re.MULTILINE))
+        imported_modules = set(re.findall(r"^(?:import|from)\s+([A-Za-z_][\w]*)", code_sources, flags=re.MULTILINE))
         for module in sorted(imported_modules):
             expected = IMPORT_TO_REQUIREMENT.get(module)
             if expected and expected not in requirements:
                 failures.append(f"requirements.txt must include {expected} for notebook import {module}")
 
-        if "squeeze=True" in sources:
+        if "squeeze=True" in code_sources:
             pandas_upper_bound = any(
                 re.match(r"^pandas\s*<\s*2(?:\b|$)", spec, flags=re.IGNORECASE)
                 for spec in requirement_specs
@@ -156,7 +173,7 @@ def main():
             if "pandas<2" not in provenance_text:
                 failures.append("DATA_PROVENANCE.md must document the pandas<2 compatibility constraint")
 
-        urls = sorted(set(re.findall(r"""https?://[^\s)\]"']+""", sources)))
+        urls = sorted(set(re.findall(r"""https?://[^\s)\]"']+""", code_sources)))
         data_urls = [url for url in urls if "nytimes/covid-19-data" in url]
         if not data_urls:
             failures.append("Rt-covid19.ipynb must keep the NYT COVID-19 data URL visible")

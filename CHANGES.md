@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added HTTPS-only URL validation for notebook, README, and data provenance
+  references.
 - Required `matplotlibrc` to use the Agg backend for headless historical
   notebook reproduction.
 - Added validation and provenance notes for the `pandas<2` constraint required

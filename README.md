@@ -78,6 +78,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   notebook uses legacy `read_csv(..., squeeze=True)` behavior.
 - `make check` also verifies that `matplotlibrc` keeps the headless Agg
   backend configured.
+- `make check` also verifies that notebook and provenance URL references use
+  HTTPS.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -108,6 +110,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   compatibility guard.
 - See `docs/plans/2026-06-09-matplotlib-headless-backend.md` for the
   Matplotlib headless backend guard.
+- See `docs/plans/2026-06-09-https-url-provenance.md` for the HTTPS URL
+  provenance guard.
 
 ## Contributing
 
