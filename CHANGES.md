@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Converted Matplotlib runtime configuration comment links to HTTPS and added
+  validation coverage for that file.
 - Named the notebook's NYT CSV runtime source as `DATA_SOURCE_URL` and added
   provenance validation for the constant and `read_csv` usage.
 - Added HTTPS-only URL validation for notebook, README, and data provenance

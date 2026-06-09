@@ -15,6 +15,7 @@ MATPLOTLIBRC = ROOT / "matplotlibrc"
 DOCS_PLANS = ROOT / "docs" / "plans"
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-rt-covid19-baseline.md"
 KERNEL_VERSION_PLAN = DOCS_PLANS / "2026-06-09-kernel-version-provenance.md"
+MATPLOTLIBRC_HTTPS_PLAN = DOCS_PLANS / "2026-06-09-matplotlibrc-https-urls.md"
 
 IMPORT_TO_REQUIREMENT = {
     "IPython": "ipython",
@@ -64,6 +65,8 @@ def main():
         failures.append("docs/plans/2026-06-08-rt-covid19-baseline.md is missing")
     if not KERNEL_VERSION_PLAN.exists():
         failures.append("docs/plans/2026-06-09-kernel-version-provenance.md is missing")
+    if not MATPLOTLIBRC_HTTPS_PLAN.exists():
+        failures.append("docs/plans/2026-06-09-matplotlibrc-https-urls.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -91,19 +94,21 @@ def main():
     if not provenance_text:
         failures.append("DATA_PROVENANCE.md is missing or empty")
 
+    matplotlibrc_text = MATPLOTLIBRC.read_text(encoding="utf-8") if MATPLOTLIBRC.exists() else ""
+    if not matplotlibrc_text:
+        failures.append("matplotlibrc is missing or empty")
+
     docs_with_urls = {
         "README.md": readme_text,
         "DATA_PROVENANCE.md": provenance_text,
+        "matplotlibrc": matplotlibrc_text,
     }
     for doc_name, doc_text in docs_with_urls.items():
         insecure_urls = sorted(set(re.findall(r"http://[^\s)\]\"']+", doc_text)))
         for url in insecure_urls:
             failures.append(f"{doc_name} must use HTTPS URLs, found {url}")
 
-    matplotlibrc_text = MATPLOTLIBRC.read_text(encoding="utf-8") if MATPLOTLIBRC.exists() else ""
-    if not matplotlibrc_text:
-        failures.append("matplotlibrc is missing or empty")
-    elif not re.search(r"^backend\s*:\s*Agg\s*$", matplotlibrc_text, flags=re.MULTILINE):
+    if matplotlibrc_text and not re.search(r"^backend\s*:\s*Agg\s*$", matplotlibrc_text, flags=re.MULTILINE):
         failures.append("matplotlibrc must set backend : Agg for headless notebook reproduction")
 
     requirement_specs = requirement_lines()

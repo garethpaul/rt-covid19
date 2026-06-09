@@ -79,8 +79,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   notebook uses legacy `read_csv(..., squeeze=True)` behavior.
 - `make check` also verifies that `matplotlibrc` keeps the headless Agg
   backend configured.
-- `make check` also verifies that notebook and provenance URL references use
-  HTTPS.
+- `make check` also verifies that notebook, provenance, and Matplotlib runtime
+  configuration URL references use HTTPS.
 - `make check` also verifies that the NYT runtime CSV URL is named
   `DATA_SOURCE_URL` and used by `pandas.read_csv`.
 - `make check` also requires completed canonical plans under `docs/plans`.
@@ -117,6 +117,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   provenance guard.
 - See `docs/plans/2026-06-09-data-source-url-constant.md` for the notebook data
   source URL constant guard.
+- See `docs/plans/2026-06-09-matplotlibrc-https-urls.md` for the Matplotlib
+  runtime configuration HTTPS URL guard.
 
 ## Contributing
 

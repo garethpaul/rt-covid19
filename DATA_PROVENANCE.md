@@ -8,8 +8,8 @@ The notebook reads county-level COVID-19 case data from:
 
 The file is downloaded at notebook runtime with `pandas.read_csv`. The
 notebook names this runtime source as `DATA_SOURCE_URL`. The repository does
-not commit a local copy of the dataset. Notebook and provenance URL references
-should use HTTPS.
+not commit a local copy of the dataset. Notebook, provenance, and local runtime
+configuration URL references should use HTTPS.
 
 ## Refresh Status
 
