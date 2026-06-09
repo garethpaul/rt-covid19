@@ -53,6 +53,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - Open `Rt-covid19.ipynb` in Jupyter or another compatible notebook viewer.
 - The notebook reads county case data from `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`.
+  The source cell names that runtime CSV download as `DATA_SOURCE_URL`.
 - See `DATA_PROVENANCE.md` for runtime download behavior, preprocessing notes,
   and refresh status.
 - The notebook metadata records Python 3.6.7 as the historical kernel version.
@@ -80,6 +81,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   backend configured.
 - `make check` also verifies that notebook and provenance URL references use
   HTTPS.
+- `make check` also verifies that the NYT runtime CSV URL is named
+  `DATA_SOURCE_URL` and used by `pandas.read_csv`.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -112,6 +115,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   Matplotlib headless backend guard.
 - See `docs/plans/2026-06-09-https-url-provenance.md` for the HTTPS URL
   provenance guard.
+- See `docs/plans/2026-06-09-data-source-url-constant.md` for the notebook data
+  source URL constant guard.
 
 ## Contributing
 

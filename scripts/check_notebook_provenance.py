@@ -183,6 +183,15 @@ def main():
             if url not in provenance_text:
                 failures.append(f"DATA_PROVENANCE.md must document notebook data source {url}")
 
+        if not re.search(
+            r"^DATA_SOURCE_URL\s*=\s*['\"]https://raw\.githubusercontent\.com/nytimes/covid-19-data/master/us-counties\.csv['\"]",
+            code_sources,
+            flags=re.MULTILINE,
+        ):
+            failures.append("Rt-covid19.ipynb must define DATA_SOURCE_URL for the NYT county data source")
+        if not re.search(r"pd\.read_csv\(\s*DATA_SOURCE_URL\b", code_sources):
+            failures.append("Rt-covid19.ipynb must read county data from DATA_SOURCE_URL")
+
     if "not current public-health guidance" not in readme_text.lower():
         failures.append("README.md must state that the notebook is not current public-health guidance")
     if "not current public-health guidance" not in provenance_text.lower():
