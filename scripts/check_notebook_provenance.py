@@ -13,6 +13,7 @@ REQUIREMENTS = ROOT / "requirements.txt"
 PROVENANCE = ROOT / "DATA_PROVENANCE.md"
 DOCS_PLANS = ROOT / "docs" / "plans"
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-rt-covid19-baseline.md"
+KERNEL_VERSION_PLAN = DOCS_PLANS / "2026-06-09-kernel-version-provenance.md"
 
 IMPORT_TO_REQUIREMENT = {
     "IPython": "ipython",
@@ -53,6 +54,8 @@ def main():
 
     if not CANONICAL_PLAN.exists():
         failures.append("docs/plans/2026-06-08-rt-covid19-baseline.md is missing")
+    if not KERNEL_VERSION_PLAN.exists():
+        failures.append("docs/plans/2026-06-09-kernel-version-provenance.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
