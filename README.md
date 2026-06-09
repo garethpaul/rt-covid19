@@ -56,6 +56,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - See `DATA_PROVENANCE.md` for runtime download behavior, preprocessing notes,
   and refresh status.
 - The notebook metadata records Python 3.6.7 as the historical kernel version.
+- `requirements.txt` keeps `pandas<2` because the notebook uses legacy
+  `read_csv(..., squeeze=True)` behavior.
 - The committed notebook is source-only: execution counts and rendered outputs
   are intentionally stripped to avoid presenting stale results as a refresh.
 - This is a historical educational analysis and is not current public-health guidance.
@@ -70,6 +72,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   defined in the notebook.
 - `make check` also verifies that README and provenance notes document the
   notebook's recorded Python 3.6.7 kernel version.
+- `make check` also verifies that `pandas<2` stays documented while the
+  notebook uses legacy `read_csv(..., squeeze=True)` behavior.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -96,6 +100,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   guard.
 - See `docs/plans/2026-06-09-kernel-version-provenance.md` for the notebook
   kernel-version provenance guard.
+- See `docs/plans/2026-06-09-pandas-squeeze-constraint.md` for the pandas
+  compatibility guard.
 
 ## Contributing
 

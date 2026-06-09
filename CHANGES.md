@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added validation and provenance notes for the `pandas<2` constraint required
+  by the notebook's legacy `read_csv(..., squeeze=True)` usage.
 - Added notebook kernel-version provenance checks so README and
   `DATA_PROVENANCE.md` document the recorded Python 3.6.7 runtime context.
 - Removed empty trailing notebook code cells and added validation so committed

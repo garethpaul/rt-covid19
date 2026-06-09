@@ -26,7 +26,8 @@ analysis placeholders.
 The checked-in notebook metadata records Python 3.6.7 as the historical kernel
 version. Use a compatible environment when reproducing the original analysis,
 especially because the notebook relies on legacy pandas behavior documented in
-`requirements.txt`.
+`requirements.txt`. The `pandas<2` constraint is intentional while the notebook
+uses `read_csv(..., squeeze=True)`.
 
 ## Preprocessing
 

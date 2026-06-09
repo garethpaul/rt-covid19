@@ -34,15 +34,22 @@ REQUIRED_NOTEBOOK_ASSIGNMENTS = [
 ]
 
 
-def requirement_names():
+def requirement_lines():
     if not REQUIREMENTS.exists():
-        return set()
+        return []
 
-    names = set()
+    lines = []
     for raw_line in REQUIREMENTS.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
+        lines.append(line)
+    return lines
+
+
+def requirement_names():
+    names = set()
+    for line in requirement_lines():
         name = re.split(r"[<>=!~\[]", line, maxsplit=1)[0].strip().lower()
         if name:
             names.add(name)
@@ -83,6 +90,7 @@ def main():
     if not provenance_text:
         failures.append("DATA_PROVENANCE.md is missing or empty")
 
+    requirement_specs = requirement_lines()
     requirements = requirement_names()
     if not requirements:
         failures.append("requirements.txt is missing or empty")
@@ -128,6 +136,18 @@ def main():
             expected = IMPORT_TO_REQUIREMENT.get(module)
             if expected and expected not in requirements:
                 failures.append(f"requirements.txt must include {expected} for notebook import {module}")
+
+        if "squeeze=True" in sources:
+            pandas_upper_bound = any(
+                re.match(r"^pandas\s*<\s*2(?:\b|$)", spec, flags=re.IGNORECASE)
+                for spec in requirement_specs
+            )
+            if not pandas_upper_bound:
+                failures.append("requirements.txt must keep pandas<2 for read_csv(..., squeeze=True) compatibility")
+            if "pandas<2" not in readme_text:
+                failures.append("README.md must document the pandas<2 compatibility constraint")
+            if "pandas<2" not in provenance_text:
+                failures.append("DATA_PROVENANCE.md must document the pandas<2 compatibility constraint")
 
         urls = sorted(set(re.findall(r"""https?://[^\s)\]"']+""", sources)))
         data_urls = [url for url in urls if "nytimes/covid-19-data" in url]
