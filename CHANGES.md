@@ -8,6 +8,8 @@
 - Removed invalid escape warnings from notebook mathematical labels.
 - Added bounded, timed, host-restricted, non-redirecting dataset downloads.
 - Added ten offline unit tests, Ruff, dependency auditing, and CI.
+- Added installed-dependency consistency checks, root-independent Make targets,
+  a fixed hosted runner, and cancellation of superseded CI runs.
 
 ## 2026-06-09
 

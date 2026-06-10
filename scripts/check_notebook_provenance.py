@@ -15,11 +15,13 @@ PROVENANCE = ROOT / "DATA_PROVENANCE.md"
 MATPLOTLIBRC = ROOT / "matplotlibrc"
 MODEL = ROOT / "rt_covid19.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "check.yml"
+MAKEFILE = ROOT / "Makefile"
 DOCS_PLANS = ROOT / "docs" / "plans"
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-rt-covid19-baseline.md"
 KERNEL_VERSION_PLAN = DOCS_PLANS / "2026-06-09-kernel-version-provenance.md"
 MATPLOTLIBRC_HTTPS_PLAN = DOCS_PLANS / "2026-06-09-matplotlibrc-https-urls.md"
 MODERN_RUNTIME_PLAN = DOCS_PLANS / "2026-06-10-modern-runtime-and-ci.md"
+HOSTED_VALIDATION_PLAN = DOCS_PLANS / "2026-06-10-hosted-validation-hardening.md"
 
 IMPORT_TO_REQUIREMENT = {
     "IPython": "ipython",
@@ -73,6 +75,8 @@ def main():
         failures.append("docs/plans/2026-06-09-matplotlibrc-https-urls.md is missing")
     if not MODERN_RUNTIME_PLAN.exists():
         failures.append("docs/plans/2026-06-10-modern-runtime-and-ci.md is missing")
+    if not HOSTED_VALIDATION_PLAN.exists():
+        failures.append("docs/plans/2026-06-10-hosted-validation-hardening.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -178,14 +182,35 @@ def main():
     for contract in (
         "permissions:",
         "contents: read",
+        "runs-on: ubuntu-24.04",
         "timeout-minutes: 10",
+        "concurrency:",
+        "cancel-in-progress: true",
         "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
         "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405",
         'python-version: "3.12"',
+        "python -m pip install --only-binary=:all:",
         "run: make check",
     ):
         if contract not in workflow_text:
             failures.append(f"GitHub Actions workflow must keep contract: {contract}")
+
+    for action, revision in re.findall(
+        r"^\s*uses:\s*([^@\s]+)@([^\s#]+)", workflow_text, re.MULTILINE
+    ):
+        if not re.fullmatch(r"[a-f0-9]{40}", revision):
+            failures.append(f"GitHub Actions action {action} must be pinned to a full commit SHA")
+
+    makefile_text = MAKEFILE.read_text(encoding="utf-8") if MAKEFILE.exists() else ""
+    for contract in (
+        "ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))",
+        "dependencies:",
+        "$(PYTHON) -m pip check",
+        '$(PYTHON) -m pip_audit -r "$(ROOT)/requirements.txt"',
+        "check: verify dependencies",
+    ):
+        if contract not in makefile_text:
+            failures.append(f"Makefile must keep contract: {contract}")
 
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})

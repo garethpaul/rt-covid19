@@ -92,6 +92,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - `make check` also verifies that the NYT runtime CSV URL and data loading stay
   centralized in `rt_covid19.load_counties`.
 - GitHub Actions runs the same gate on Python 3.12 for pushes and pull requests.
+- The canonical gate also runs `pip check`, and hosted installs require binary
+  distributions on a fixed Ubuntu 24.04 runner.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -122,6 +124,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   compatibility guard.
 - See `docs/plans/2026-06-10-modern-runtime-and-ci.md` for the tested model
   extraction, modern pandas runtime, and CI gate.
+- See `docs/plans/2026-06-10-hosted-validation-hardening.md` for the fixed
+  runner, root-independent gate, and dependency consistency checks.
 - See `docs/plans/2026-06-09-matplotlib-headless-backend.md` for the
   Matplotlib headless backend guard.
 - See `docs/plans/2026-06-09-https-url-provenance.md` for the HTTPS URL
