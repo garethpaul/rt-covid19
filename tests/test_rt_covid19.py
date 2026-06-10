@@ -1,0 +1,107 @@
+import io
+import math
+import unittest
+from unittest import mock
+
+import numpy as np
+import pandas as pd
+
+import rt_covid19
+
+
+class RtCovid19Tests(unittest.TestCase):
+    def test_load_counties_returns_sorted_series(self):
+        source = io.StringIO(
+            "date,county,state,fips,cases,deaths\n"
+            "2020-01-02,Alpha,CA,1,3,0\n"
+            "2020-01-01,Alpha,CA,1,1,0\n"
+        )
+
+        counties = rt_covid19.load_counties(source)
+
+        self.assertIsInstance(counties, pd.Series)
+        self.assertEqual([1, 3], counties.tolist())
+        self.assertEqual("cases", counties.name)
+
+    def test_load_counties_rejects_negative_totals(self):
+        source = io.StringIO("date,county,state,fips,cases,deaths\n2020-01-01,Alpha,CA,1,-1,0\n")
+
+        with self.assertRaisesRegex(ValueError, "must not be negative"):
+            rt_covid19.load_counties(source)
+
+    def test_load_counties_bounds_remote_download(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = rt_covid19.DATA_SOURCE_URL
+        response.headers = {"Content-Length": "100"}
+
+        with mock.patch("rt_covid19.urllib.request.urlopen", return_value=response) as urlopen:
+            with self.assertRaisesRegex(ValueError, "download limit"):
+                rt_covid19.load_counties(max_download_bytes=10, timeout=7)
+
+        self.assertEqual(7, urlopen.call_args.kwargs["timeout"])
+
+    def test_load_counties_rejects_unapproved_remote_url(self):
+        with self.assertRaisesRegex(ValueError, "configured HTTPS GitHub host"):
+            rt_covid19.load_counties("https://example.com/counties.csv")
+
+    def test_load_counties_rejects_redirected_remote_url(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = "https://example.com/counties.csv"
+        response.headers = {}
+
+        with mock.patch("rt_covid19.urllib.request.urlopen", return_value=response):
+            with self.assertRaisesRegex(ValueError, "must not redirect"):
+                rt_covid19.load_counties()
+
+    def test_load_counties_bounds_streamed_download(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = rt_covid19.DATA_SOURCE_URL
+        response.headers = {}
+        response.read.side_effect = [b"123456", b"789012", b""]
+
+        with mock.patch("rt_covid19.urllib.request.urlopen", return_value=response):
+            with self.assertRaisesRegex(ValueError, "download limit"):
+                rt_covid19.load_counties(max_download_bytes=10)
+
+    def test_prepare_cases_returns_aligned_daily_series(self):
+        index = pd.date_range("2020-01-01", periods=8)
+        cases = pd.Series([1, 2, 4, 7, 11, 16, 22, 29], index=index)
+
+        original, smoothed = rt_covid19.prepare_cases(cases)
+
+        self.assertEqual(original.index.tolist(), smoothed.index.tolist())
+        self.assertGreater(len(smoothed), 0)
+        self.assertTrue(np.isfinite(smoothed).all())
+
+    def test_get_posteriors_normalizes_each_day(self):
+        index = pd.date_range("2020-01-01", periods=4)
+        cases = pd.Series([4.0, 5.0, 6.0, 7.0], index=index)
+
+        posteriors, log_likelihood = rt_covid19.get_posteriors(
+            cases, sigma=0.2, r_t_range=np.linspace(0, 4, 81)
+        )
+
+        np.testing.assert_allclose(posteriors.sum(axis=0).to_numpy(), 1.0)
+        self.assertTrue(math.isfinite(log_likelihood))
+
+    def test_get_posteriors_rejects_invalid_sigma(self):
+        cases = pd.Series([1.0, 2.0])
+
+        with self.assertRaisesRegex(ValueError, "Sigma"):
+            rt_covid19.get_posteriors(cases, sigma=0)
+
+    def test_highest_density_interval_excludes_low_mass_prefix(self):
+        pmf = pd.Series([0.1, 0.6, 0.3], index=[0.0, 1.0, 2.0])
+
+        interval = rt_covid19.highest_density_interval(pmf, p=0.8)
+        frame_interval = rt_covid19.highest_density_interval(pd.DataFrame({"day": pmf}), p=0.8)
+
+        self.assertEqual([1.0, 2.0], interval.tolist())
+        self.assertEqual([1.0, 2.0], frame_interval.loc["day"].tolist())
+
+
+if __name__ == "__main__":
+    unittest.main()
