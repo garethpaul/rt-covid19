@@ -24,6 +24,7 @@ Priority:
 - Keep the maintained Python 3.12 runtime pinned and reproducible
 - Keep installed dependency consistency and vulnerability checks in CI
 - Keep reusable model calculations in the tested Python module
+- Keep custom Rt grids non-negative and strictly increasing
 - Keep Matplotlib configured for headless reproduction runs
 - Keep notebook, provenance, and runtime configuration URL references on HTTPS
 - Keep the runtime NYT CSV source named as `DATA_SOURCE_URL`

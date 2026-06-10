@@ -93,6 +93,18 @@ class RtCovid19Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Sigma"):
             rt_covid19.get_posteriors(cases, sigma=0)
 
+    def test_get_posteriors_rejects_invalid_rt_range(self):
+        cases = pd.Series([1.0, 2.0])
+
+        invalid_ranges = (
+            np.array([-0.1, 0.0, 0.1]),
+            np.array([0.0, 0.5, 0.5, 1.0]),
+        )
+        for r_t_range in invalid_ranges:
+            with self.subTest(r_t_range=r_t_range):
+                with self.assertRaisesRegex(ValueError, "non-negative and strictly increasing"):
+                    rt_covid19.get_posteriors(cases, r_t_range=r_t_range)
+
     def test_highest_density_interval_excludes_low_mass_prefix(self):
         pmf = pd.Series([0.1, 0.6, 0.3], index=[0.0, 1.0, 2.0])
 

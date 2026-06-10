@@ -74,7 +74,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make check` validates notebook JSON, provenance, formatting, lint, ten
+- `make check` validates notebook JSON, provenance, formatting, lint, eleven
   offline model tests, bytecode compilation, and declared dependencies.
 - `make check` also rejects stored notebook outputs and execution counts.
 - `make check` also rejects empty code cells so the source-only notebook does
@@ -134,6 +134,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   source URL constant guard.
 - See `docs/plans/2026-06-09-matplotlibrc-https-urls.md` for the Matplotlib
   runtime configuration HTTPS URL guard.
+- See `docs/plans/2026-06-10-rt-grid-validation.md` for the custom Rt grid
+  numerical input guard.
 
 ## Contributing
 

@@ -136,6 +136,8 @@ def get_posteriors(series, sigma=0.15, r_t_range=R_T_RANGE):
     r_t_range = np.asarray(r_t_range, dtype=float)
     if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():
         raise ValueError("Rt range must be a non-empty, finite one-dimensional array.")
+    if (r_t_range < 0).any() or (np.diff(r_t_range) <= 0).any():
+        raise ValueError("Rt range must be non-negative and strictly increasing.")
 
     lam = values[:-1] * np.exp(GAMMA * (r_t_range[:, None] - 1))
     likelihoods = pd.DataFrame(

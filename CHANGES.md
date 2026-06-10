@@ -10,6 +10,8 @@
 - Added ten offline unit tests, Ruff, dependency auditing, and CI.
 - Added installed-dependency consistency checks, root-independent Make targets,
   a fixed hosted runner, and cancellation of superseded CI runs.
+- Rejected negative or duplicate custom Rt grid values before posterior
+  calculations, with focused numerical regression coverage.
 
 ## 2026-06-09
 
