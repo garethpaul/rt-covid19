@@ -21,8 +21,8 @@ Priority:
 - Keep committed notebooks free of stale execution outputs and counts
 - Keep committed notebooks free of empty placeholder code cells
 - Keep the notebook's recorded Python kernel version visible in provenance docs
-- Keep legacy pandas compatibility constraints explicit while notebook source
-  depends on them
+- Keep the maintained Python 3.12 runtime pinned and reproducible
+- Keep reusable model calculations in the tested Python module
 - Keep Matplotlib configured for headless reproduction runs
 - Keep notebook, provenance, and runtime configuration URL references on HTTPS
 - Keep the runtime NYT CSV source named as `DATA_SOURCE_URL`
@@ -32,8 +32,7 @@ Priority:
 
 Next priorities:
 
-- Document Python environment constraints beyond `requirements.txt`
-- Move reusable calculations into testable Python functions
+- Add broader numerical regression fixtures for model changes
 - Add notes on uncertainty, limitations, and interpretation
 
 Contribution rules:

@@ -10,11 +10,15 @@
 - `scripts` - baseline checks and helper scripts
 - `docs` - plans, notes, and generated README assets
 - `requirements.txt` - Python runtime dependencies
+- `requirements-dev.txt` - pinned verification dependencies
+- `rt_covid19.py` - tested data loading and Rt model helpers
+- `tests` - offline behavioral tests using synthetic case data
 - `plans` - repository source or sample assets
 
 ## Development commands
 
-- Install dependencies: `python3 -m pip install -r requirements.txt`
+- Supported verification runtime: Python 3.12
+- Install dependencies: `python3 -m pip install -r requirements.txt -r requirements-dev.txt`
 - Full baseline: `make check`
 - Combined verification: `make verify`
 - Lint/static checks: `make lint`
@@ -29,7 +33,7 @@
 
 ## Testing guidance
 
-- No dedicated test files were detected; treat `make check` as the minimum baseline.
+- Run `make test` for the synthetic-data model suite and `make check` for the full gate.
 - Start with the narrowest relevant test or Make target, then run `make check` before handing off if the change is not documentation-only.
 - Keep README verification notes in sync when commands, fixtures, or supported toolchains change.
 

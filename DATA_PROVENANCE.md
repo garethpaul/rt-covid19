@@ -6,10 +6,16 @@ The notebook reads county-level COVID-19 case data from:
 
 `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`
 
-The file is downloaded at notebook runtime with `pandas.read_csv`. The
-notebook names this runtime source as `DATA_SOURCE_URL`. The repository does
+The file is downloaded at notebook runtime through `rt_covid19.load_counties`,
+which uses `pandas.read_csv`. The helper names this runtime source as
+`DATA_SOURCE_URL`. The repository does
 not commit a local copy of the dataset. Notebook, provenance, and local runtime
 configuration URL references should use HTTPS.
+The maintained loader accepts only the configured HTTPS GitHub source for live
+downloads, uses a 30-second timeout, and caps the response at 512 MiB by
+default. Redirects are rejected so credentials or data requests cannot cross
+the documented source boundary. Tests pass in-memory file objects instead of
+making network requests.
 
 ## Refresh Status
 
@@ -26,10 +32,10 @@ analysis placeholders.
 ## Runtime Environment
 
 The checked-in notebook metadata records Python 3.6.7 as the historical kernel
-version. Use a compatible environment when reproducing the original analysis,
-especially because the notebook relies on legacy pandas behavior documented in
-`requirements.txt`. The `pandas<2` constraint is intentional while the notebook
-uses `read_csv(..., squeeze=True)`.
+version. The maintained and CI-tested runtime is Python 3.12 with exact package
+pins in `requirements.txt`. Data loading uses the supported
+`DataFrame.squeeze("columns")` API rather than the removed pandas squeeze
+argument.
 The checked-in `matplotlibrc` sets `backend : Agg` so reproduction runs can
 render plots in headless environments without requiring an interactive display.
 

@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-06-10
+
+- Extracted reusable data loading and Rt calculations into a tested module.
+- Modernized the notebook to pandas 3 and pinned the Python 3.12 runtime.
+- Corrected the highest-density interval's low-bound off-by-one behavior.
+- Removed invalid escape warnings from notebook mathematical labels.
+- Added bounded, timed, host-restricted, non-redirecting dataset downloads.
+- Added ten offline unit tests, Ruff, dependency auditing, and CI.
+
 ## 2026-06-09
 
 - Converted Matplotlib runtime configuration comment links to HTTPS and added
