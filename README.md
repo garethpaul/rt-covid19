@@ -74,7 +74,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make check` validates notebook JSON, provenance, formatting, lint, eleven
+- `make check` validates notebook JSON, provenance, formatting, lint, twelve
   offline model tests, bytecode compilation, and declared dependencies.
 - `make check` also rejects stored notebook outputs and execution counts.
 - `make check` also rejects empty code cells so the source-only notebook does
@@ -91,6 +91,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   configuration URL references use HTTPS.
 - `make check` also verifies that the NYT runtime CSV URL and data loading stay
   centralized in `rt_covid19.load_counties`.
+- `make check` also requires numeric, finite, strictly increasing HDI grids
+  before interval endpoints are returned.
 - GitHub Actions runs the same gate on Python 3.12 for pushes and pull requests.
 - The canonical gate also runs `pip check`, and hosted installs require binary
   distributions on a fixed Ubuntu 24.04 runner.
@@ -138,6 +140,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   runtime configuration HTTPS URL guard.
 - See `docs/plans/2026-06-10-rt-grid-validation.md` for the custom Rt grid
   numerical input guard.
+- See `docs/plans/2026-06-12-hdi-grid-validation.md` for finite, strictly
+  increasing HDI grids.
 
 ## Contributing
 

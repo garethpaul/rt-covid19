@@ -110,13 +110,33 @@ class RtCovid19Tests(unittest.TestCase):
                     rt_covid19.get_posteriors(cases, r_t_range=r_t_range)
 
     def test_highest_density_interval_excludes_low_mass_prefix(self):
-        pmf = pd.Series([0.1, 0.6, 0.3], index=[0.0, 1.0, 2.0])
+        pmf = pd.Series([0.1, 0.6, 0.3], index=[0, 1, 2])
 
         interval = rt_covid19.highest_density_interval(pmf, p=0.8)
         frame_interval = rt_covid19.highest_density_interval(pd.DataFrame({"day": pmf}), p=0.8)
 
         self.assertEqual([1.0, 2.0], interval.tolist())
         self.assertEqual([1.0, 2.0], frame_interval.loc["day"].tolist())
+        self.assertTrue(all(isinstance(value, (int, np.integer)) for value in interval))
+
+    def test_highest_density_interval_rejects_invalid_grid(self):
+        invalid_indexes = (
+            [0.0, 0.0, 1.0],
+            [0.0, 2.0, 1.0],
+            [0.0, np.nan, 2.0],
+            [0.0, np.inf, 2.0],
+            ["0", "1", "2"],
+            [False, True, True],
+            pd.MultiIndex.from_tuples([(0, 0), (1, 1), (2, 2)]),
+        )
+
+        for index in invalid_indexes:
+            with self.subTest(index=index):
+                pmf = pd.Series([0.1, 0.6, 0.3], index=index)
+                with self.assertRaisesRegex(
+                    ValueError, "HDI grid must be numeric, finite, and strictly increasing"
+                ):
+                    rt_covid19.highest_density_interval(pmf, p=0.8)
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ KERNEL_VERSION_PLAN = DOCS_PLANS / "2026-06-09-kernel-version-provenance.md"
 MATPLOTLIBRC_HTTPS_PLAN = DOCS_PLANS / "2026-06-09-matplotlibrc-https-urls.md"
 MODERN_RUNTIME_PLAN = DOCS_PLANS / "2026-06-10-modern-runtime-and-ci.md"
 HOSTED_VALIDATION_PLAN = DOCS_PLANS / "2026-06-10-hosted-validation-hardening.md"
+HDI_GRID_PLAN = DOCS_PLANS / "2026-06-12-hdi-grid-validation.md"
 
 EXPECTED_WORKFLOW = """name: Check
 
@@ -114,6 +115,8 @@ def main():
         failures.append("docs/plans/2026-06-10-modern-runtime-and-ci.md is missing")
     if not HOSTED_VALIDATION_PLAN.exists():
         failures.append("docs/plans/2026-06-10-hosted-validation-hardening.md is missing")
+    if not HDI_GRID_PLAN.exists():
+        failures.append("docs/plans/2026-06-12-hdi-grid-validation.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -201,6 +204,11 @@ def main():
             "def prepare_cases(",
             "def get_posteriors(",
             "def highest_density_interval(",
+            "pmf.index.nlevels != 1",
+            "pd.api.types.is_numeric_dtype(pmf.index.dtype)",
+            "pd.api.types.is_bool_dtype(",
+            "(np.diff(grid) <= 0).any()",
+            'raise ValueError("HDI grid must be numeric, finite, and strictly increasing.")',
             "if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():",
             "if (r_t_range < 0).any() or (np.diff(r_t_range) <= 0).any():",
             'raise ValueError("Rt range must be non-negative and strictly increasing.")',
@@ -228,9 +236,24 @@ def main():
         "np.array([-0.1, 0.0, 0.1])",
         "np.array([0.0, 0.5, 0.5, 1.0])",
         "with self.assertRaisesRegex(ValueError, message):",
+        "def test_highest_density_interval_rejects_invalid_grid(self):",
+        '["0", "1", "2"]',
+        "[False, True, True]",
+        "pd.MultiIndex.from_tuples([(0, 0), (1, 1), (2, 2)])",
+        'ValueError, "HDI grid must be numeric, finite, and strictly increasing"',
+        "isinstance(value, (int, np.integer))",
     ):
         if contract not in model_tests_text:
             failures.append(f"tests/test_rt_covid19.py must keep grid contract: {contract}")
+
+    for doc_name, doc_text in {
+        "README.md": readme_text,
+        "VISION.md": (ROOT / "VISION.md").read_text(encoding="utf-8"),
+        "CHANGES.md": (ROOT / "CHANGES.md").read_text(encoding="utf-8"),
+        "DATA_PROVENANCE.md": provenance_text,
+    }.items():
+        if "finite, strictly increasing HDI grids" not in " ".join(doc_text.split()):
+            failures.append(f"{doc_name} must document finite, strictly increasing HDI grids")
 
     workflow_text = WORKFLOW.read_text(encoding="utf-8") if WORKFLOW.exists() else ""
     for contract in (

@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-12
+
+- Required numeric, finite, strictly increasing HDI grids before returning
+  interval endpoints, with offline regression and source-contract coverage.
+
 ## 2026-06-10
 
 - Extracted reusable data loading and Rt calculations into a tested module.

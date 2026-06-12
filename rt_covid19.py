@@ -180,6 +180,15 @@ def highest_density_interval(pmf, p=0.9):
     values = pmf.to_numpy(dtype=float)
     if not np.isfinite(values).all() or (values < 0).any() or values.sum() <= 0:
         raise ValueError("PMF values must be finite, non-negative, and have positive mass.")
+    if (
+        pmf.index.nlevels != 1
+        or not pd.api.types.is_numeric_dtype(pmf.index.dtype)
+        or pd.api.types.is_bool_dtype(pmf.index.dtype)
+    ):
+        raise ValueError("HDI grid must be numeric, finite, and strictly increasing.")
+    grid = pmf.index.to_numpy(dtype=float)
+    if not np.isfinite(grid).all() or (np.diff(grid) <= 0).any():
+        raise ValueError("HDI grid must be numeric, finite, and strictly increasing.")
     values = values / values.sum()
     cumsum = np.concatenate(([0.0], np.cumsum(values)))
     best = None
