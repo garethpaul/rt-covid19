@@ -74,7 +74,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make check` validates notebook JSON, provenance, formatting, lint, ten
+- `make check` validates notebook JSON, provenance, formatting, lint, eleven
   offline model tests, bytecode compilation, and declared dependencies.
 - `make check` also rejects stored notebook outputs and execution counts.
 - `make check` also rejects empty code cells so the source-only notebook does
@@ -92,6 +92,10 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - `make check` also verifies that the NYT runtime CSV URL and data loading stay
   centralized in `rt_covid19.load_counties`.
 - GitHub Actions runs the same gate on Python 3.12 for pushes and pull requests.
+- The canonical gate also runs `pip check`, and hosted installs require binary
+  distributions on a fixed Ubuntu 24.04 runner.
+- The single approved workflow uses immutable actions, read-only permissions,
+  and checkout with persisted GitHub credentials disabled.
 - `make check` also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
@@ -122,6 +126,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   compatibility guard.
 - See `docs/plans/2026-06-10-modern-runtime-and-ci.md` for the tested model
   extraction, modern pandas runtime, and CI gate.
+- See `docs/plans/2026-06-10-hosted-validation-hardening.md` for the fixed
+  runner, root-independent gate, and dependency consistency checks.
 - See `docs/plans/2026-06-09-matplotlib-headless-backend.md` for the
   Matplotlib headless backend guard.
 - See `docs/plans/2026-06-09-https-url-provenance.md` for the HTTPS URL
@@ -130,6 +136,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   source URL constant guard.
 - See `docs/plans/2026-06-09-matplotlibrc-https-urls.md` for the Matplotlib
   runtime configuration HTTPS URL guard.
+- See `docs/plans/2026-06-10-rt-grid-validation.md` for the custom Rt grid
+  numerical input guard.
 
 ## Contributing
 

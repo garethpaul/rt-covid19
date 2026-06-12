@@ -14,12 +14,51 @@ DEV_REQUIREMENTS = ROOT / "requirements-dev.txt"
 PROVENANCE = ROOT / "DATA_PROVENANCE.md"
 MATPLOTLIBRC = ROOT / "matplotlibrc"
 MODEL = ROOT / "rt_covid19.py"
+MODEL_TESTS = ROOT / "tests" / "test_rt_covid19.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "check.yml"
+MAKEFILE = ROOT / "Makefile"
 DOCS_PLANS = ROOT / "docs" / "plans"
 CANONICAL_PLAN = DOCS_PLANS / "2026-06-08-rt-covid19-baseline.md"
 KERNEL_VERSION_PLAN = DOCS_PLANS / "2026-06-09-kernel-version-provenance.md"
 MATPLOTLIBRC_HTTPS_PLAN = DOCS_PLANS / "2026-06-09-matplotlibrc-https-urls.md"
 MODERN_RUNTIME_PLAN = DOCS_PLANS / "2026-06-10-modern-runtime-and-ci.md"
+HOSTED_VALIDATION_PLAN = DOCS_PLANS / "2026-06-10-hosted-validation-hardening.md"
+
+EXPECTED_WORKFLOW = """name: Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: "python -m pip install --only-binary=:all: -r requirements.txt -r requirements-dev.txt"
+      - name: Run full verification
+        run: make check
+"""
 
 IMPORT_TO_REQUIREMENT = {
     "IPython": "ipython",
@@ -73,6 +112,8 @@ def main():
         failures.append("docs/plans/2026-06-09-matplotlibrc-https-urls.md is missing")
     if not MODERN_RUNTIME_PLAN.exists():
         failures.append("docs/plans/2026-06-10-modern-runtime-and-ci.md is missing")
+    if not HOSTED_VALIDATION_PLAN.exists():
+        failures.append("docs/plans/2026-06-10-hosted-validation-hardening.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -143,7 +184,7 @@ def main():
         if DEV_REQUIREMENTS.exists()
         else set()
     )
-    if dev_requirements != {"pip-audit==2.10.0", "ruff==0.15.15"}:
+    if dev_requirements != {"pip-audit==2.10.0", "ruff==0.15.16"}:
         failures.append("requirements-dev.txt must keep the verified quality-tool pins")
 
     model_text = MODEL.read_text(encoding="utf-8") if MODEL.exists() else ""
@@ -160,6 +201,9 @@ def main():
             "def prepare_cases(",
             "def get_posteriors(",
             "def highest_density_interval(",
+            "if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():",
+            "if (r_t_range < 0).any() or (np.diff(r_t_range) <= 0).any():",
+            'raise ValueError("Rt range must be non-negative and strictly increasing.")',
             ').squeeze("columns")',
         ):
             if contract not in model_text:
@@ -174,18 +218,64 @@ def main():
                     f"requirements.txt must include {expected} for model import {module}"
                 )
 
+    model_tests_text = MODEL_TESTS.read_text(encoding="utf-8") if MODEL_TESTS.exists() else ""
+    for contract in (
+        "def test_get_posteriors_rejects_invalid_rt_range(self):",
+        "np.array([])",
+        "np.array([[0.0, 1.0]])",
+        "np.array([0.0, np.nan])",
+        "np.array([0.0, np.inf])",
+        "np.array([-0.1, 0.0, 0.1])",
+        "np.array([0.0, 0.5, 0.5, 1.0])",
+        "with self.assertRaisesRegex(ValueError, message):",
+    ):
+        if contract not in model_tests_text:
+            failures.append(f"tests/test_rt_covid19.py must keep grid contract: {contract}")
+
     workflow_text = WORKFLOW.read_text(encoding="utf-8") if WORKFLOW.exists() else ""
     for contract in (
         "permissions:",
         "contents: read",
+        "runs-on: ubuntu-24.04",
         "timeout-minutes: 10",
+        "concurrency:",
+        "cancel-in-progress: true",
         "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
         "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405",
+        "persist-credentials: false",
         'python-version: "3.12"',
+        "python -m pip install --only-binary=:all:",
         "run: make check",
     ):
         if contract not in workflow_text:
             failures.append(f"GitHub Actions workflow must keep contract: {contract}")
+
+    for action, revision in re.findall(
+        r"^\s*uses:\s*([^@\s]+)@([^\s#]+)", workflow_text, re.MULTILINE
+    ):
+        if not re.fullmatch(r"[a-f0-9]{40}", revision):
+            failures.append(f"GitHub Actions action {action} must be pinned to a full commit SHA")
+
+    workflow_files = sorted(
+        path
+        for path in WORKFLOW.parent.glob("*")
+        if path.is_file() and path.suffix in {".yml", ".yaml"}
+    )
+    if workflow_files != [WORKFLOW]:
+        failures.append(".github/workflows/check.yml must remain the only approved workflow")
+    if workflow_text != EXPECTED_WORKFLOW:
+        failures.append(".github/workflows/check.yml must match the approved verification policy")
+
+    makefile_text = MAKEFILE.read_text(encoding="utf-8") if MAKEFILE.exists() else ""
+    for contract in (
+        "ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))",
+        "dependencies:",
+        "$(PYTHON) -m pip check",
+        '$(PYTHON) -m pip_audit -r "$(ROOT)/requirements.txt"',
+        "check: verify dependencies",
+    ):
+        if contract not in makefile_text:
+            failures.append(f"Makefile must keep contract: {contract}")
 
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})

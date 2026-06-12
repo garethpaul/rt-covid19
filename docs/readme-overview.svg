@@ -53,8 +53,8 @@
     <rect x="910" y="78" width="196" height="36" rx="18" fill="#d7efe0" stroke="#94d5ac"/>
     <circle cx="934" cy="96" r="6" fill="#16a34a"/>
     <text x="950" y="101" fill="#1c322d" font-size="15" font-weight="700">Data system</text>
-    <text x="86" y="166" fill="#475569" font-size="20" font-weight="500">A data science notebook project. This repo contains a notebook to track</text>
-<text x="86" y="193" fill="#475569" font-size="20" font-weight="500">the</text>
+    <text x="86" y="166" fill="#475569" font-size="20" font-weight="500">Historical COVID-19 Rt notebook with a tested Python model.</text>
+<text x="86" y="193" fill="#475569" font-size="20" font-weight="500">Reproducible provenance, offline tests, and guarded inputs.</text>
   </g>
 
   <g transform="translate(84 222)">
@@ -103,7 +103,7 @@
 <g transform="translate(24 196)">
       <circle cx="10" cy="15" r="6" fill="#f59e0b"/>
       <text x="28" y="11" fill="#64748b" font-size="12" font-weight="800">VERIFY</text>
-      <text x="28" y="34" fill="#1f2937" font-size="15" font-weight="650">make check validates notebook JSON,...</text>
+      <text x="28" y="34" fill="#1f2937" font-size="15" font-weight="650">notebook + model + CI gates</text>
     </g>
 <g transform="translate(24 247)">
       <circle cx="10" cy="15" r="6" fill="#16a34a"/>

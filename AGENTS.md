@@ -2,7 +2,7 @@
 
 ## Repository purpose
 
-`garethpaul/rt-covid19` is a data science notebook project. This repo contains a notebook to track the progression of COVID19 is the effective repro number (Rt).
+`garethpaul/rt-covid19` is a data science notebook project that tracks the effective reproduction number (Rt) for historical COVID-19 case data.
 
 ## Project structure
 
@@ -52,6 +52,7 @@
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-08-rt-covid19-baseline.md` for the canonical notebook provenance baseline.
 - See `docs/plans/2026-06-08-strip-notebook-outputs.md` for the source-only notebook output policy.
+- Keep `.github/workflows/check.yml` as the only workflow, with immutable actions, read-only permissions, and persisted checkout credentials disabled.
 - Notebook outputs can be large or noisy; clear unnecessary execution output before committing notebooks.
 
 ## Agent workflow
