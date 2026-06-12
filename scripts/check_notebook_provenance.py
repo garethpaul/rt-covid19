@@ -24,6 +24,14 @@ MATPLOTLIBRC_HTTPS_PLAN = DOCS_PLANS / "2026-06-09-matplotlibrc-https-urls.md"
 MODERN_RUNTIME_PLAN = DOCS_PLANS / "2026-06-10-modern-runtime-and-ci.md"
 HOSTED_VALIDATION_PLAN = DOCS_PLANS / "2026-06-10-hosted-validation-hardening.md"
 HDI_GRID_PLAN = DOCS_PLANS / "2026-06-12-hdi-grid-validation.md"
+DATASET_INTEGRITY_PLAN = DOCS_PLANS / "2026-06-12-dataset-snapshot-integrity.md"
+
+DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
+DATA_SOURCE_URL = (
+    f"https://raw.githubusercontent.com/nytimes/covid-19-data/{DATA_SOURCE_COMMIT}/us-counties.csv"
+)
+DATA_SOURCE_BYTES = "104,795,654"
+DATA_SOURCE_SHA256 = "dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0"
 
 EXPECTED_WORKFLOW = """name: Check
 
@@ -117,6 +125,8 @@ def main():
         failures.append("docs/plans/2026-06-10-hosted-validation-hardening.md is missing")
     if not HDI_GRID_PLAN.exists():
         failures.append("docs/plans/2026-06-12-hdi-grid-validation.md is missing")
+    if not DATASET_INTEGRITY_PLAN.exists():
+        failures.append("docs/plans/2026-06-12-dataset-snapshot-integrity.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -196,6 +206,15 @@ def main():
     else:
         for contract in (
             "DATA_SOURCE_URL =",
+            f'DATA_SOURCE_COMMIT = "{DATA_SOURCE_COMMIT}"',
+            "DATA_SOURCE_BYTES = 104_795_654",
+            f'DATA_SOURCE_SHA256 = "{DATA_SOURCE_SHA256}"',
+            "digest = hashlib.sha256()",
+            "digest.update(chunk)",
+            "declared_size != DATA_SOURCE_BYTES",
+            "downloaded_bytes != DATA_SOURCE_BYTES",
+            "digest.hexdigest() != DATA_SOURCE_SHA256",
+            "County data SHA-256 does not match the reviewed snapshot.",
             "def load_counties(",
             "DEFAULT_DOWNLOAD_TIMEOUT =",
             "DEFAULT_MAX_DOWNLOAD_BYTES =",
@@ -242,18 +261,41 @@ def main():
         "pd.MultiIndex.from_tuples([(0, 0), (1, 1), (2, 2)])",
         'ValueError, "HDI grid must be numeric, finite, and strictly increasing"',
         "isinstance(value, (int, np.integer))",
+        "def test_load_counties_verifies_remote_snapshot_before_parsing(self):",
+        "def test_load_counties_rejects_remote_snapshot_size_mismatch_before_parsing(self):",
+        "def test_load_counties_rejects_remote_snapshot_digest_mismatch_before_parsing(self):",
+        "read_counties.assert_not_called()",
     ):
         if contract not in model_tests_text:
-            failures.append(f"tests/test_rt_covid19.py must keep grid contract: {contract}")
+            failures.append(f"tests/test_rt_covid19.py must keep model test contract: {contract}")
 
-    for doc_name, doc_text in {
+    hdi_docs = {
         "README.md": readme_text,
         "VISION.md": (ROOT / "VISION.md").read_text(encoding="utf-8"),
         "CHANGES.md": (ROOT / "CHANGES.md").read_text(encoding="utf-8"),
         "DATA_PROVENANCE.md": provenance_text,
-    }.items():
+    }
+    for doc_name, doc_text in hdi_docs.items():
         if "finite, strictly increasing HDI grids" not in " ".join(doc_text.split()):
             failures.append(f"{doc_name} must document finite, strictly increasing HDI grids")
+
+    snapshot_docs = dict(hdi_docs)
+    snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+    for doc_name, doc_text in snapshot_docs.items():
+        normalized = " ".join(doc_text.split())
+        for identity in (DATA_SOURCE_COMMIT, DATA_SOURCE_BYTES, DATA_SOURCE_SHA256):
+            if identity not in normalized:
+                failures.append(f"{doc_name} must document dataset identity {identity}")
+
+    if DATA_SOURCE_URL not in model_text:
+        failures.append("rt_covid19.py must pin the exact reviewed NYT dataset URL")
+    if "/master/us-counties.csv" in model_text:
+        failures.append("rt_covid19.py must not restore the mutable NYT master dataset URL")
+    if model_text:
+        digest_check = model_text.find("digest.hexdigest() != DATA_SOURCE_SHA256")
+        parse_call = model_text.find("return _read_counties(handle)")
+        if digest_check < 0 or parse_call < 0 or digest_check > parse_call:
+            failures.append("rt_covid19.py must verify the dataset digest before CSV parsing")
 
     workflow_text = WORKFLOW.read_text(encoding="utf-8") if WORKFLOW.exists() else ""
     for contract in (

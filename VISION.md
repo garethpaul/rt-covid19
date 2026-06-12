@@ -29,6 +29,10 @@ Priority:
 - Keep Matplotlib configured for headless reproduction runs
 - Keep notebook, provenance, and runtime configuration URL references on HTTPS
 - Keep the runtime NYT CSV source named as `DATA_SOURCE_URL`
+- Keep the runtime NYT snapshot pinned to commit
+  `62ef34cfcb60214be873a38d73619da9ea57d50b`, 104,795,654 bytes, and SHA-256
+  `dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0`
+  before parsing remote data
 - Keep completed maintenance plans under `docs/plans`
 - Keep notebook presentation defaults explicit and non-authoritative
 - Keep security and responsible-use metadata available

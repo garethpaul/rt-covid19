@@ -1,5 +1,6 @@
 """Reusable data loading and Rt model helpers from the project notebook."""
 
+import hashlib
 import math
 import tempfile
 import urllib.request
@@ -10,7 +11,10 @@ import pandas as pd
 from scipy import stats as sps
 
 
-DATA_SOURCE_URL = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv"
+DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
+DATA_SOURCE_URL = "https://raw.githubusercontent.com/nytimes/covid-19-data/62ef34cfcb60214be873a38d73619da9ea57d50b/us-counties.csv"
+DATA_SOURCE_BYTES = 104_795_654
+DATA_SOURCE_SHA256 = "dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0"
 R_T_MAX = 12
 R_T_RANGE = np.linspace(0, R_T_MAX, R_T_MAX * 100 + 1)
 GAMMA = 1 / 7
@@ -49,14 +53,22 @@ def _download_counties(url, timeout, max_download_bytes):
                 raise ValueError("County data Content-Length must be an integer.") from exc
             if declared_size < 0 or declared_size > max_download_bytes:
                 raise ValueError("County data exceeds the configured download limit.")
+            if declared_size != DATA_SOURCE_BYTES:
+                raise ValueError("County data size does not match the reviewed snapshot.")
 
         downloaded_bytes = 0
+        digest = hashlib.sha256()
         with tempfile.SpooledTemporaryFile(max_size=8 * 1024 * 1024) as handle:
             while chunk := response.read(DOWNLOAD_CHUNK_SIZE):
                 downloaded_bytes += len(chunk)
                 if downloaded_bytes > max_download_bytes:
                     raise ValueError("County data exceeds the configured download limit.")
+                digest.update(chunk)
                 handle.write(chunk)
+            if downloaded_bytes != DATA_SOURCE_BYTES:
+                raise ValueError("County data size does not match the reviewed snapshot.")
+            if digest.hexdigest() != DATA_SOURCE_SHA256:
+                raise ValueError("County data SHA-256 does not match the reviewed snapshot.")
             handle.seek(0)
             return _read_counties(handle)
 

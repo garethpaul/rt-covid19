@@ -56,7 +56,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Running or Using the Project
 
 - Open `Rt-covid19.ipynb` in Jupyter or another compatible notebook viewer.
-- The notebook reads county case data from `https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`.
+- The notebook reads county case data from `https://raw.githubusercontent.com/nytimes/covid-19-data/62ef34cfcb60214be873a38d73619da9ea57d50b/us-counties.csv`.
   The source cell names that runtime CSV download as `DATA_SOURCE_URL`.
 - See `DATA_PROVENANCE.md` for runtime download behavior, preprocessing notes,
   and refresh status.
@@ -65,7 +65,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   the supported `DataFrame.squeeze("columns")` pandas API.
 - Live data loading requires the configured HTTPS GitHub URL, applies a
   30-second request timeout, rejects redirects, and caps downloads at 512 MiB
-  by default.
+  by default. Before parsing, it requires the reviewed 104,795,654-byte
+  snapshot with SHA-256
+  `dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0`.
 - `matplotlibrc` sets the Agg backend for headless historical reproduction
   runs.
 - The committed notebook is source-only: execution counts and rendered outputs
@@ -74,7 +76,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make check` validates notebook JSON, provenance, formatting, lint, twelve
+- `make check` validates notebook JSON, provenance, formatting, lint, fifteen
   offline model tests, bytecode compilation, and declared dependencies.
 - `make check` also rejects stored notebook outputs and execution counts.
 - `make check` also rejects empty code cells so the source-only notebook does
@@ -91,6 +93,10 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   configuration URL references use HTTPS.
 - `make check` also verifies that the NYT runtime CSV URL and data loading stay
   centralized in `rt_covid19.load_counties`.
+- `make check` also requires NYT commit
+  `62ef34cfcb60214be873a38d73619da9ea57d50b`, the 104,795,654-byte snapshot,
+  and SHA-256 `dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0`
+  before remote CSV parsing.
 - `make check` also requires numeric, finite, strictly increasing HDI grids
   before interval endpoints are returned.
 - GitHub Actions runs the same gate on Python 3.12 for pushes and pull requests.
@@ -142,6 +148,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   numerical input guard.
 - See `docs/plans/2026-06-12-hdi-grid-validation.md` for finite, strictly
   increasing HDI grids.
+- See `docs/plans/2026-06-12-dataset-snapshot-integrity.md` for the immutable
+  NYT commit, byte-size, and SHA-256 verification boundary.
 
 ## Contributing
 

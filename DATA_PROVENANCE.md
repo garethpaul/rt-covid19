@@ -4,7 +4,7 @@
 
 The notebook reads county-level COVID-19 case data from:
 
-`https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv`
+`https://raw.githubusercontent.com/nytimes/covid-19-data/62ef34cfcb60214be873a38d73619da9ea57d50b/us-counties.csv`
 
 The file is downloaded at notebook runtime through `rt_covid19.load_counties`,
 which uses `pandas.read_csv`. The helper names this runtime source as
@@ -14,14 +14,21 @@ configuration URL references should use HTTPS.
 The maintained loader accepts only the configured HTTPS GitHub source for live
 downloads, uses a 30-second timeout, and caps the response at 512 MiB by
 default. Redirects are rejected so credentials or data requests cannot cross
-the documented source boundary. Tests pass in-memory file objects instead of
-making network requests.
+the documented source boundary. The reviewed file is Git blob
+`b20a210d4933a99f2bebb855b965f649ac871a40`, is 104,795,654 bytes, and has
+SHA-256 `dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0`.
+Remote bytes must match that size and digest before CSV parsing. Tests pass
+in-memory file objects instead of making network requests; explicit local paths
+and file-like objects remain caller-controlled and are not checked against the
+remote snapshot identity.
 
 ## Refresh Status
 
-No data refresh was performed on 2026-06-08. Because the notebook reads the NYT
-`master` branch at runtime, results depend on the date and network response of
-the notebook execution environment.
+No data refresh was performed on 2026-06-08. On 2026-06-12, the existing final
+NYT repository state was recorded at commit
+`62ef34cfcb60214be873a38d73619da9ea57d50b`; runtime downloads now use that
+immutable snapshot instead of following the mutable `master` branch. A future
+dataset refresh requires a reviewed commit, size, digest, and provenance update.
 
 The committed notebook is source-only. Execution counts and rendered outputs are
 stripped so checked-in artifacts do not imply that a fresh dataset download or

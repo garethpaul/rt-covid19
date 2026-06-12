@@ -44,6 +44,13 @@ so malformed numerical inputs fail before posterior calculations.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
+Remote county data is pinned to NYT commit
+`62ef34cfcb60214be873a38d73619da9ea57d50b` and must be exactly 104,795,654
+bytes with SHA-256
+`dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0`
+before parsing. This identity check complements the existing HTTPS host,
+credential, redirect, timeout, and download-size restrictions.
+
 ## Safe Research Guidelines
 
 Good-faith research is welcome when it stays within these boundaries:

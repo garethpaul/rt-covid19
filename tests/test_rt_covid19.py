@@ -1,4 +1,5 @@
 import io
+import hashlib
 import math
 import unittest
 from unittest import mock
@@ -10,6 +11,14 @@ import rt_covid19
 
 
 class RtCovid19Tests(unittest.TestCase):
+    def remote_response(self, payload, content_length=None):
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = rt_covid19.DATA_SOURCE_URL
+        response.headers = {} if content_length is None else {"Content-Length": content_length}
+        response.read.side_effect = [payload, b""]
+        return response
+
     def test_load_counties_returns_sorted_series(self):
         source = io.StringIO(
             "date,county,state,fips,cases,deaths\n"
@@ -65,6 +74,49 @@ class RtCovid19Tests(unittest.TestCase):
         with mock.patch("rt_covid19.urllib.request.urlopen", return_value=response):
             with self.assertRaisesRegex(ValueError, "download limit"):
                 rt_covid19.load_counties(max_download_bytes=10)
+
+    def test_load_counties_verifies_remote_snapshot_before_parsing(self):
+        payload = b"date,county,state,fips,cases,deaths\n2020-01-01,Alpha,CA,1,1,0\n"
+        response = self.remote_response(payload, str(len(payload)))
+
+        with (
+            mock.patch("rt_covid19.DATA_SOURCE_BYTES", len(payload)),
+            mock.patch("rt_covid19.DATA_SOURCE_SHA256", hashlib.sha256(payload).hexdigest()),
+            mock.patch("rt_covid19.urllib.request.urlopen", return_value=response),
+        ):
+            counties = rt_covid19.load_counties()
+
+        self.assertEqual([1], counties.tolist())
+
+    def test_load_counties_rejects_remote_snapshot_size_mismatch_before_parsing(self):
+        payload = b"not-the-reviewed-snapshot"
+        response = self.remote_response(payload, str(len(payload)))
+
+        with (
+            mock.patch("rt_covid19.DATA_SOURCE_BYTES", len(payload) + 1),
+            mock.patch("rt_covid19._read_counties") as read_counties,
+            mock.patch("rt_covid19.urllib.request.urlopen", return_value=response),
+        ):
+            with self.assertRaisesRegex(ValueError, "size does not match"):
+                rt_covid19.load_counties()
+
+        read_counties.assert_not_called()
+        response.read.assert_not_called()
+
+    def test_load_counties_rejects_remote_snapshot_digest_mismatch_before_parsing(self):
+        payload = b"not-the-reviewed-snapshot"
+        response = self.remote_response(payload)
+
+        with (
+            mock.patch("rt_covid19.DATA_SOURCE_BYTES", len(payload)),
+            mock.patch("rt_covid19.DATA_SOURCE_SHA256", "0" * 64),
+            mock.patch("rt_covid19._read_counties") as read_counties,
+            mock.patch("rt_covid19.urllib.request.urlopen", return_value=response),
+        ):
+            with self.assertRaisesRegex(ValueError, "SHA-256 does not match"):
+                rt_covid19.load_counties()
+
+        read_counties.assert_not_called()
 
     def test_prepare_cases_returns_aligned_daily_series(self):
         index = pd.date_range("2020-01-01", periods=8)

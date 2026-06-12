@@ -2,6 +2,11 @@
 
 ## 2026-06-12
 
+- Pinned the runtime NYT dataset to commit
+  `62ef34cfcb60214be873a38d73619da9ea57d50b` and require the reviewed
+  104,795,654-byte file with SHA-256
+  `dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0`
+  before remote CSV parsing.
 - Required numeric, finite, strictly increasing HDI grids before returning
   interval endpoints, with offline regression and source-contract coverage.
 
