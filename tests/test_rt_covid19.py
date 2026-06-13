@@ -191,6 +191,20 @@ class RtCovid19Tests(unittest.TestCase):
         self.assertEqual([1.0, 2.0], frame_interval.loc["day"].tolist())
         self.assertTrue(all(isinstance(value, (int, np.integer)) for value in interval))
 
+    def test_highest_density_interval_uses_numeric_grid_width(self):
+        pmf = pd.Series([0.1, 0.4, 0.25, 0.25], index=[0, 100, 101, 102])
+
+        interval = rt_covid19.highest_density_interval(pmf, p=0.5)
+
+        self.assertEqual([100, 101], interval.tolist())
+
+    def test_highest_density_interval_preserves_earliest_equal_width(self):
+        pmf = pd.Series([0.25, 0.25, 0.25, 0.25], index=[0, 1, 2, 3])
+
+        interval = rt_covid19.highest_density_interval(pmf, p=0.5)
+
+        self.assertEqual([0, 1], interval.tolist())
+
     def test_highest_density_interval_rejects_invalid_grid(self):
         invalid_indexes = (
             [0.0, 0.0, 1.0],

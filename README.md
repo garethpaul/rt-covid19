@@ -76,7 +76,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make check` validates notebook JSON, provenance, formatting, lint, fifteen
+- `make check` validates notebook JSON, provenance, formatting, lint, seventeen
   offline model tests, bytecode compilation, and declared dependencies.
 - `make check` also rejects stored notebook outputs and execution counts.
 - `make check` also rejects empty code cells so the source-only notebook does
@@ -99,6 +99,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   before remote CSV parsing.
 - `make check` also requires numeric, finite, strictly increasing HDI grids
   before interval endpoints are returned.
+- `make check` also requires HDI candidates on nonuniform grids to be compared
+  by numeric endpoint width while preserving the earliest equal-width result.
 - `make check` also requires one-dimensional, non-missing, unique, increasing
   case indexes before preprocessing or posterior calculations.
 - GitHub Actions runs the same gate on Python 3.12 for pushes and pull requests.
@@ -154,6 +156,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   NYT commit, byte-size, and SHA-256 verification boundary.
 - See `docs/plans/2026-06-13-case-index-ordering.md` for deterministic
   preprocessing and posterior observation indexes.
+- See `docs/plans/2026-06-13-hdi-numeric-width.md` for nonuniform-grid HDI
+  endpoint-width selection.
 
 ## Contributing
 

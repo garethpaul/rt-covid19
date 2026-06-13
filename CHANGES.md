@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Selected highest-density intervals by numeric endpoint width on nonuniform
+  grids while preserving deterministic earliest-candidate ties.
 - Required one-dimensional, non-missing, unique, increasing case indexes before
   preprocessing or posterior calculations, with shared offline coverage.
 

@@ -233,6 +233,9 @@ def main():
             "pd.api.types.is_numeric_dtype(pmf.index.dtype)",
             "pd.api.types.is_bool_dtype(",
             "(np.diff(grid) <= 0).any()",
+            "grid[candidate[1]] - grid[candidate[0]]",
+            "grid[best[1]] - grid[best[0]]",
+            "grid[candidate[1]] - grid[candidate[0]] < grid[best[1]] - grid[best[0]]",
             'raise ValueError("HDI grid must be numeric, finite, and strictly increasing.")',
             "if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():",
             "if (r_t_range < 0).any() or (np.diff(r_t_range) <= 0).any():",
@@ -268,6 +271,11 @@ def main():
         "np.array([0.0, 0.5, 0.5, 1.0])",
         "with self.assertRaisesRegex(ValueError, message):",
         "def test_highest_density_interval_rejects_invalid_grid(self):",
+        "def test_highest_density_interval_uses_numeric_grid_width(self):",
+        "def test_highest_density_interval_preserves_earliest_equal_width(self):",
+        "[0, 100, 101, 102]",
+        "self.assertEqual([100, 101], interval.tolist())",
+        "self.assertEqual([0, 1], interval.tolist())",
         '["0", "1", "2"]',
         "[False, True, True]",
         "pd.MultiIndex.from_tuples([(0, 0), (1, 1), (2, 2)])",
@@ -290,6 +298,15 @@ def main():
     for doc_name, doc_text in hdi_docs.items():
         if "finite, strictly increasing HDI grids" not in " ".join(doc_text.split()):
             failures.append(f"{doc_name} must document finite, strictly increasing HDI grids")
+
+    numeric_width_docs = {
+        "README.md": readme_text,
+        "VISION.md": hdi_docs["VISION.md"],
+        "CHANGES.md": hdi_docs["CHANGES.md"],
+    }
+    for doc_name, doc_text in numeric_width_docs.items():
+        if "numeric endpoint width" not in " ".join(doc_text.split()):
+            failures.append(f"{doc_name} must document numeric endpoint width for HDIs")
 
     case_index_docs = dict(hdi_docs)
     case_index_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")

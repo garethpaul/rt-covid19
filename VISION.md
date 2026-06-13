@@ -26,6 +26,7 @@ Priority:
 - Keep reusable model calculations in the tested Python module
 - Keep custom Rt grids non-negative and strictly increasing
 - Keep finite, strictly increasing HDI grids behind interval summaries
+- Select HDI candidates by numeric endpoint width on nonuniform grids
 - Keep one-dimensional, non-missing, unique, increasing case indexes behind
   preprocessing and posterior calculations
 - Keep Matplotlib configured for headless reproduction runs

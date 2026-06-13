@@ -1,6 +1,6 @@
 # HDI Numeric Width Selection
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -84,3 +84,26 @@ only after implementation succeeds.
 
 This change does not redefine highest-density probability mass, require uniform
 grids, alter the notebook's default Rt range, or change DataFrame recursion.
+
+## Work Completed
+
+- Replaced candidate index-span comparison with numeric endpoint distance on
+  the already validated HDI grid.
+- Preserved left-to-right selection when candidate widths are equal.
+- Added focused nonuniform-grid, equal-width tie, uniform-grid, and invalid-grid
+  regression coverage.
+- Protected both endpoint-width operands and both new tests in the notebook
+  provenance contract.
+- Synchronized README, vision, and change-history documentation.
+
+## Verification
+
+- Focused HDI tests passed for nonuniform width, equal-width ties, existing
+  uniform behavior, and invalid grids.
+- `make check` passed in a fresh exact-pinned Python 3.12 environment with
+  `PYTHONPATH` unset: provenance, Ruff, 19 tests, notebook JSON, `pip check`,
+  and `pip-audit` completed with no known vulnerabilities.
+- The absolute Makefile `verify` target passed from `/tmp`.
+- Six focused index-span, strict-comparison, test-name, expected-endpoint,
+  documentation, and completed-plan mutations were rejected.
+- `git diff --check` is required before shipping.

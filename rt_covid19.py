@@ -224,7 +224,9 @@ def highest_density_interval(pmf, p=0.9):
         if high > len(values):
             break
         candidate = (low, high - 1)
-        if best is None or candidate[1] - candidate[0] < best[1] - best[0]:
+        if best is None or (
+            grid[candidate[1]] - grid[candidate[0]] < grid[best[1]] - grid[best[0]]
+        ):
             best = candidate
 
     if best is None:
