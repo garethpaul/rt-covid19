@@ -26,6 +26,8 @@ Priority:
 - Keep reusable model calculations in the tested Python module
 - Keep custom Rt grids non-negative and strictly increasing
 - Keep finite, strictly increasing HDI grids behind interval summaries
+- Keep one-dimensional, non-missing, unique, increasing case indexes behind
+  preprocessing and posterior calculations
 - Keep Matplotlib configured for headless reproduction runs
 - Keep notebook, provenance, and runtime configuration URL references on HTTPS
 - Keep the runtime NYT CSV source named as `DATA_SOURCE_URL`

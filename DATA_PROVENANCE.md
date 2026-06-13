@@ -55,6 +55,9 @@ The notebook:
 - starts each county after the last zero-case day;
 - applies Gaussian smoothing to reduce reporting noise before estimating Rt.
 
+Reusable preprocessing and posterior helpers require one-dimensional,
+non-missing, unique, increasing case indexes before order-sensitive operations.
+
 ## Presentation Defaults
 
 The notebook defines neutral plotting defaults for filtered regions, lockdown

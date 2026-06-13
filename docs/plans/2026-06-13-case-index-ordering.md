@@ -1,6 +1,6 @@
 # Case Index Ordering Contract
 
-## Status: In Progress
+## Status: Completed
 
 ## Context
 
@@ -27,7 +27,17 @@ downstream pandas shape failures.
 - Keep the historical notebook, dataset snapshot, and numerical formulas
   unchanged.
 
-## Planned Verification
+## Work Completed
+
+- Added a shared observation-index validator for model Series inputs.
+- Required one-dimensional, non-missing, unique, monotonic increasing labels.
+- Applied the same validator before preprocessing and posterior calculations.
+- Added shared invalid fixtures for duplicate, descending, missing, and
+  MultiIndex labels while retaining valid integer and DatetimeIndex coverage.
+- Added fail-closed source, test, documentation, and plan contracts.
+- Updated README, security, vision, change, and data-provenance documentation.
+
+## Verification
 
 - Focused unit tests for valid and invalid indexes
 - Fresh Python 3.12 `make check`
@@ -35,6 +45,10 @@ downstream pandas shape failures.
 - Focused missing, duplicate, descending, MultiIndex, bypass, and test-wiring
   mutations
 - Notebook JSON, Python syntax, secret, bytecode, and `git diff --check` audits
+
+The offline suite passed 17 tests. Ruff 0.15.16, the provenance checker,
+notebook JSON validation, and the read-only network-isolated Python 3.12.8
+`make verify` gate passed with exact pinned dependencies.
 
 ## Scope Boundary
 

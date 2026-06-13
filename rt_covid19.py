@@ -23,6 +23,19 @@ DEFAULT_MAX_DOWNLOAD_BYTES = 512 * 1024 * 1024
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 
 
+def _validate_case_index(series, label):
+    index = series.index
+    if (
+        index.nlevels != 1
+        or index.hasnans
+        or not index.is_unique
+        or not index.is_monotonic_increasing
+    ):
+        raise ValueError(
+            f"{label} index must be one-dimensional, non-missing, unique, and increasing."
+        )
+
+
 def _read_counties(source):
     return pd.read_csv(
         source,
@@ -117,6 +130,7 @@ def prepare_cases(cases):
     """Convert cumulative case totals to raw and smoothed daily cases."""
     if not isinstance(cases, pd.Series) or cases.empty:
         raise ValueError("Cases must be a non-empty pandas Series.")
+    _validate_case_index(cases, "Cases")
     if not pd.api.types.is_numeric_dtype(cases):
         raise ValueError("Cases must contain numeric values.")
     if not np.isfinite(cases.to_numpy(dtype=float)).all():
@@ -137,6 +151,7 @@ def get_posteriors(series, sigma=0.15, r_t_range=R_T_RANGE):
     """Calculate daily Rt posteriors and their cumulative log likelihood."""
     if not isinstance(series, pd.Series) or len(series) < 2:
         raise ValueError("Smoothed cases must be a pandas Series with at least two values.")
+    _validate_case_index(series, "Smoothed cases")
     values = series.to_numpy(dtype=float)
     if not np.isfinite(values).all() or (values < 0).any():
         raise ValueError("Smoothed cases must contain finite, non-negative values.")

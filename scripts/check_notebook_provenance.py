@@ -216,6 +216,12 @@ def main():
             "digest.hexdigest() != DATA_SOURCE_SHA256",
             "County data SHA-256 does not match the reviewed snapshot.",
             "def load_counties(",
+            "def _validate_case_index(series, label):",
+            "index.nlevels != 1",
+            "index.hasnans",
+            "not index.is_unique",
+            "not index.is_monotonic_increasing",
+            'f"{label} index must be one-dimensional, non-missing, unique, and increasing."',
             "DEFAULT_DOWNLOAD_TIMEOUT =",
             "DEFAULT_MAX_DOWNLOAD_BYTES =",
             "urllib.request.urlopen(request, timeout=timeout)",
@@ -248,6 +254,12 @@ def main():
     model_tests_text = MODEL_TESTS.read_text(encoding="utf-8") if MODEL_TESTS.exists() else ""
     for contract in (
         "def test_get_posteriors_rejects_invalid_rt_range(self):",
+        "def test_prepare_cases_rejects_ambiguous_indexes(self):",
+        "def test_get_posteriors_rejects_ambiguous_indexes(self):",
+        "def invalid_case_indexes():",
+        "pd.Index([0, 0, 1])",
+        "pd.Index([2, 1, 0])",
+        'pd.DatetimeIndex(["2020-01-01", None, "2020-01-03"])',
         "np.array([])",
         "np.array([[0.0, 1.0]])",
         "np.array([0.0, np.nan])",
@@ -278,6 +290,13 @@ def main():
     for doc_name, doc_text in hdi_docs.items():
         if "finite, strictly increasing HDI grids" not in " ".join(doc_text.split()):
             failures.append(f"{doc_name} must document finite, strictly increasing HDI grids")
+
+    case_index_docs = dict(hdi_docs)
+    case_index_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
+    for doc_name, doc_text in case_index_docs.items():
+        normalized = " ".join(doc_text.split())
+        if "one-dimensional, non-missing, unique, increasing case indexes" not in normalized:
+            failures.append(f"{doc_name} must document ordered case indexes")
 
     snapshot_docs = dict(hdi_docs)
     snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")

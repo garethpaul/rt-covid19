@@ -41,6 +41,9 @@ exact direct dependency pins, binary-only installation, `pip check`, and
 
 Custom Rt model grids must remain finite, non-negative, and strictly increasing
 so malformed numerical inputs fail before posterior calculations.
+Model inputs must also keep one-dimensional, non-missing, unique, increasing
+case indexes so duplicate or reordered observations cannot create ambiguous
+rolling windows or posterior columns.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 

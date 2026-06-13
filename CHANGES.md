@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-13
+
+- Required one-dimensional, non-missing, unique, increasing case indexes before
+  preprocessing or posterior calculations, with shared offline coverage.
+
 ## 2026-06-12
 
 - Pinned the runtime NYT dataset to commit

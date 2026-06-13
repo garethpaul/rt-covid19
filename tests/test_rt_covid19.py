@@ -128,6 +128,16 @@ class RtCovid19Tests(unittest.TestCase):
         self.assertGreater(len(smoothed), 0)
         self.assertTrue(np.isfinite(smoothed).all())
 
+    def test_prepare_cases_rejects_ambiguous_indexes(self):
+        for index in self.invalid_case_indexes():
+            with self.subTest(index=index):
+                cases = pd.Series([1.0, 2.0, 3.0], index=index)
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "Cases index must be one-dimensional, non-missing, unique, and increasing",
+                ):
+                    rt_covid19.prepare_cases(cases)
+
     def test_get_posteriors_normalizes_each_day(self):
         index = pd.date_range("2020-01-01", periods=4)
         cases = pd.Series([4.0, 5.0, 6.0, 7.0], index=index)
@@ -144,6 +154,16 @@ class RtCovid19Tests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "Sigma"):
             rt_covid19.get_posteriors(cases, sigma=0)
+
+    def test_get_posteriors_rejects_ambiguous_indexes(self):
+        for index in self.invalid_case_indexes():
+            with self.subTest(index=index):
+                cases = pd.Series([1.0, 2.0, 3.0], index=index)
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "Smoothed cases index must be one-dimensional, non-missing, unique, and increasing",
+                ):
+                    rt_covid19.get_posteriors(cases)
 
     def test_get_posteriors_rejects_invalid_rt_range(self):
         cases = pd.Series([1.0, 2.0])
@@ -189,6 +209,15 @@ class RtCovid19Tests(unittest.TestCase):
                     ValueError, "HDI grid must be numeric, finite, and strictly increasing"
                 ):
                     rt_covid19.highest_density_interval(pmf, p=0.8)
+
+    @staticmethod
+    def invalid_case_indexes():
+        return (
+            pd.Index([0, 0, 1]),
+            pd.Index([2, 1, 0]),
+            pd.DatetimeIndex(["2020-01-01", None, "2020-01-03"]),
+            pd.MultiIndex.from_tuples([(0, 0), (1, 1), (2, 2)]),
+        )
 
 
 if __name__ == "__main__":
