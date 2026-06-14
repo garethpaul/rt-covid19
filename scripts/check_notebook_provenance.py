@@ -25,6 +25,7 @@ MODERN_RUNTIME_PLAN = DOCS_PLANS / "2026-06-10-modern-runtime-and-ci.md"
 HOSTED_VALIDATION_PLAN = DOCS_PLANS / "2026-06-10-hosted-validation-hardening.md"
 HDI_GRID_PLAN = DOCS_PLANS / "2026-06-12-hdi-grid-validation.md"
 DATASET_INTEGRITY_PLAN = DOCS_PLANS / "2026-06-12-dataset-snapshot-integrity.md"
+MAKE_ROOT_PLAN = DOCS_PLANS / "2026-06-14-make-root-override-protection.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -127,6 +128,8 @@ def main():
         failures.append("docs/plans/2026-06-12-hdi-grid-validation.md is missing")
     if not DATASET_INTEGRITY_PLAN.exists():
         failures.append("docs/plans/2026-06-12-dataset-snapshot-integrity.md is missing")
+    if not MAKE_ROOT_PLAN.exists():
+        failures.append("docs/plans/2026-06-14-make-root-override-protection.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -368,8 +371,20 @@ def main():
         failures.append(".github/workflows/check.yml must match the approved verification policy")
 
     makefile_text = MAKEFILE.read_text(encoding="utf-8") if MAKEFILE.exists() else ""
+    root_declaration = "override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))"
+    root_assignments = [
+        line
+        for line in makefile_text.splitlines()
+        if re.match(r"^(?:override\s+)?ROOT\s*[:?+]?=", line)
+    ]
+    if not makefile_text.startswith(f"{root_declaration}\n") or root_assignments != [
+        root_declaration
+    ]:
+        failures.append(
+            "Makefile must define exactly one protected repository-derived ROOT declaration first"
+        )
     for contract in (
-        "ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))",
+        root_declaration,
         "dependencies:",
         "$(PYTHON) -m pip check",
         '$(PYTHON) -m pip_audit -r "$(ROOT)/requirements.txt"',
@@ -377,6 +392,21 @@ def main():
     ):
         if contract not in makefile_text:
             failures.append(f"Makefile must keep contract: {contract}")
+
+    if MAKE_ROOT_PLAN.exists():
+        make_root_plan = MAKE_ROOT_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "`make ROOT=/tmp check` passed",
+            "all six public Make aliases passed",
+            "Six hostile mutations were rejected",
+        ):
+            if evidence not in make_root_plan:
+                failures.append(
+                    f"{MAKE_ROOT_PLAN.relative_to(ROOT)} must record verification evidence {evidence!r}"
+                )
+        if str(MAKE_ROOT_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(f"README.md must reference {MAKE_ROOT_PLAN.relative_to(ROOT)}")
 
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})

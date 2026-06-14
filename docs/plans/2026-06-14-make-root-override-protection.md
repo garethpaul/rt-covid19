@@ -1,6 +1,6 @@
 # Make Root Override Protection
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -51,3 +51,25 @@ Python 3.12 validation, hostile mutations, and integrity screening.
 - root-declaration, checker, plan-status, README-index, and evidence mutations
 - Python syntax, workflow YAML, protected-file, secret, artifact, and
   `git diff --check` gates
+
+## Work Completed
+
+- Protected the Makefile-derived repository root from command-line and
+  environment overrides while preserving configurable Python selection.
+- Added exact declaration, completed-evidence, and README-index contracts.
+- Preserved notebook, model, dataset, dependency, and hosted-workflow behavior.
+
+## Verification Results
+
+- `python3 scripts/check_notebook_provenance.py` passed.
+- From both the checkout and an external directory, all six public Make aliases passed.
+- `make ROOT=/tmp check` passed externally while still running repository-owned
+  provenance, model, notebook, and dependency gates.
+- A disposable exact-pinned Python 3.12 environment with `PYTHONPATH` unset
+  completed Ruff, 19 tests, notebook JSON validation, `pip check`, and
+  `pip-audit` with no known vulnerabilities.
+- Six hostile mutations were rejected across root declaration, checker
+  expectation, plan status, README indexing, and recorded evidence.
+- Python syntax, workflow YAML, exact-base protected-file comparison, secret
+  screening, generated-artifact screening, and `git diff --check` passed before
+  shipping.

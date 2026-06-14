@@ -158,6 +158,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   preprocessing and posterior observation indexes.
 - See `docs/plans/2026-06-13-hdi-numeric-width.md` for nonuniform-grid HDI
   endpoint-width selection.
+- See `docs/plans/2026-06-14-make-root-override-protection.md` for the
+  caller-resistant, location-independent verification root.
 
 ## Contributing
 
