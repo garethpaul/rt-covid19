@@ -191,6 +191,37 @@ class RtCovid19Tests(unittest.TestCase):
         self.assertEqual([1.0, 2.0], frame_interval.loc["day"].tolist())
         self.assertTrue(all(isinstance(value, (int, np.integer)) for value in interval))
 
+    def test_highest_density_interval_validates_probability_type_and_range(self):
+        pmf = pd.Series([0.1, 0.6, 0.3], index=[0.0, 1.0, 2.0])
+
+        for probability in (0.8, np.float64(0.8)):
+            with self.subTest(probability=probability):
+                self.assertEqual(
+                    [1.0, 2.0],
+                    rt_covid19.highest_density_interval(pmf, p=probability).tolist(),
+                )
+
+        invalid_probabilities = (
+            None,
+            "0.8",
+            0.8 + 0j,
+            True,
+            np.bool_(False),
+            0.0,
+            np.int64(0),
+            1.0,
+            np.nan,
+            np.inf,
+            -np.inf,
+        )
+        for probability in invalid_probabilities:
+            with self.subTest(probability=probability):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "finite real number strictly between zero and one",
+                ):
+                    rt_covid19.highest_density_interval(pmf, p=probability)
+
     def test_highest_density_interval_uses_numeric_grid_width(self):
         pmf = pd.Series([0.1, 0.4, 0.25, 0.25], index=[0, 100, 101, 102])
 

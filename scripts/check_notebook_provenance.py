@@ -27,6 +27,7 @@ HDI_GRID_PLAN = DOCS_PLANS / "2026-06-12-hdi-grid-validation.md"
 DATASET_INTEGRITY_PLAN = DOCS_PLANS / "2026-06-12-dataset-snapshot-integrity.md"
 MAKE_ROOT_PLAN = DOCS_PLANS / "2026-06-14-make-root-override-protection.md"
 HDI_FRAME_PLAN = DOCS_PLANS / "2026-06-14-hdi-frame-column-integrity.md"
+HDI_PROBABILITY_PLAN = DOCS_PLANS / "2026-06-14-hdi-probability-validation.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -133,6 +134,8 @@ def main():
         failures.append("docs/plans/2026-06-14-make-root-override-protection.md is missing")
     if not HDI_FRAME_PLAN.exists():
         failures.append("docs/plans/2026-06-14-hdi-frame-column-integrity.md is missing")
+    if not HDI_PROBABILITY_PLAN.exists():
+        failures.append("docs/plans/2026-06-14-hdi-probability-validation.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -235,6 +238,11 @@ def main():
             "def prepare_cases(",
             "def get_posteriors(",
             "def highest_density_interval(",
+            "from numbers import Real",
+            "not isinstance(p, Real)",
+            "isinstance(p, (bool, np.bool_))",
+            "not math.isfinite(p)",
+            'raise ValueError("Probability must be a finite real number strictly between zero and one.")',
             "pmf.index.nlevels != 1",
             "pd.api.types.is_numeric_dtype(pmf.index.dtype)",
             "pd.api.types.is_bool_dtype(",
@@ -285,6 +293,8 @@ def main():
         "def test_highest_density_interval_uses_numeric_grid_width(self):",
         "def test_highest_density_interval_preserves_earliest_equal_width(self):",
         "def test_highest_density_interval_preserves_valid_frame_column_order(self):",
+        "def test_highest_density_interval_validates_probability_type_and_range(self):",
+        '"finite real number strictly between zero and one"',
         "def test_highest_density_interval_rejects_empty_frames(self):",
         "def test_highest_density_interval_rejects_ambiguous_frame_columns(self):",
         "[0, 100, 101, 102]",
@@ -447,6 +457,21 @@ def main():
                 )
         if str(HDI_FRAME_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(f"README.md must reference {HDI_FRAME_PLAN.relative_to(ROOT)}")
+
+    if HDI_PROBABILITY_PLAN.exists():
+        hdi_probability_plan = HDI_PROBABILITY_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused HDI probability tests passed",
+            "isolated `make check` passed",
+            "hostile probability mutations were rejected",
+        ):
+            if evidence not in hdi_probability_plan:
+                failures.append(
+                    f"{HDI_PROBABILITY_PLAN.relative_to(ROOT)} must record verification evidence {evidence!r}"
+                )
+        if str(HDI_PROBABILITY_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(f"README.md must reference {HDI_PROBABILITY_PLAN.relative_to(ROOT)}")
 
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})

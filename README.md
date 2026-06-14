@@ -99,6 +99,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   before remote CSV parsing.
 - `make check` also requires numeric, finite, strictly increasing HDI grids
   before interval endpoints are returned.
+- HDI probability mass must be a finite real number strictly between zero and
+  one; booleans and non-numeric values are rejected at the model boundary.
 - `make check` also requires HDI candidates on nonuniform grids to be compared
   by numeric endpoint width while preserving the earliest equal-width result.
 - `make check` also requires one-dimensional, non-missing, unique, increasing
@@ -162,6 +164,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   caller-resistant, location-independent verification root.
 - See `docs/plans/2026-06-14-hdi-frame-column-integrity.md` for non-empty,
   unambiguous posterior observation columns before HDI calculation.
+- See `docs/plans/2026-06-14-hdi-probability-validation.md` for the finite real
+  open-interval probability boundary.
 
 ## Contributing
 

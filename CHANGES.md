@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-14
+
+- Added a stable finite real-number boundary for HDI probability mass, rejecting
+  booleans, non-numeric values, infinities, NaN, and inclusive endpoints.
+
 ## 2026-06-13
 
 - Selected highest-density intervals by numeric endpoint width on nonuniform

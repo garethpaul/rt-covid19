@@ -4,6 +4,7 @@ import hashlib
 import math
 import tempfile
 import urllib.request
+from numbers import Real
 from urllib.parse import urlparse
 
 import numpy as np
@@ -194,8 +195,11 @@ def get_posteriors(series, sigma=0.15, r_t_range=R_T_RANGE):
 
 def highest_density_interval(pmf, p=0.9):
     """Return the narrowest interval containing the requested probability."""
-    if not 0 < p < 1:
-        raise ValueError("Probability must be between zero and one.")
+    if not isinstance(p, Real) or isinstance(p, (bool, np.bool_)):
+        raise ValueError("Probability must be a finite real number strictly between zero and one.")
+    p = float(p)
+    if not math.isfinite(p) or not 0 < p < 1:
+        raise ValueError("Probability must be a finite real number strictly between zero and one.")
     if isinstance(pmf, pd.DataFrame):
         if pmf.empty:
             raise ValueError("PMF DataFrame must contain rows and columns.")
