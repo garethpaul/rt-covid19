@@ -160,6 +160,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   endpoint-width selection.
 - See `docs/plans/2026-06-14-make-root-override-protection.md` for the
   caller-resistant, location-independent verification root.
+- See `docs/plans/2026-06-14-hdi-frame-column-integrity.md` for non-empty,
+  unambiguous posterior observation columns before HDI calculation.
 
 ## Contributing
 
