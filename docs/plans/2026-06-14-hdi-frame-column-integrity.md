@@ -1,6 +1,6 @@
 # HDI DataFrame Column Integrity
 
-## Status: In Progress
+## Status: Completed
 
 ## Context
 
@@ -35,3 +35,19 @@ produce no intervals.
 - full isolated `make check` and external-directory gate
 - hostile validation, recursion-bypass, test, and completed-plan mutations
 - exact diff, generated-artifact, bytecode, and credential-pattern audits
+
+## Verification Results
+
+- Three focused HDI frame tests passed, and the complete offline suite passed
+  22 tests.
+- The pinned isolated `make check` passed, and the external-directory gate
+  passed with provenance validation, Ruff formatting and lint, 22 offline tests, notebook
+  JSON validation, `pip check`, and zero known vulnerabilities from
+  `pip-audit`; the inherited global `PYTHONPATH` was removed so unrelated
+  editable packages could not contaminate dependency verification.
+- Seven hostile frame-column mutations were rejected across empty axes,
+  duplicate, missing, and MultiIndex columns, validation ordering, regression
+  test wiring, and completed-plan status.
+- Final exact-diff, generated-artifact, bytecode, and credential-pattern
+  audits found only the intended model, test, checker, and completed-plan
+  changes.

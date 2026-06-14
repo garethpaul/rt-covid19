@@ -205,6 +205,53 @@ class RtCovid19Tests(unittest.TestCase):
 
         self.assertEqual([0, 1], interval.tolist())
 
+    def test_highest_density_interval_preserves_valid_frame_column_order(self):
+        pmf = pd.DataFrame(
+            {
+                "later": [0.1, 0.6, 0.3],
+                "earlier": [0.7, 0.2, 0.1],
+            },
+            index=[0.0, 1.0, 2.0],
+        )
+
+        intervals = rt_covid19.highest_density_interval(pmf, p=0.8)
+
+        self.assertEqual(["later", "earlier"], intervals.index.tolist())
+        self.assertEqual([1.0, 2.0], intervals.loc["later"].tolist())
+        self.assertEqual([0.0, 1.0], intervals.loc["earlier"].tolist())
+
+    def test_highest_density_interval_rejects_empty_frames(self):
+        empty_frames = (
+            pd.DataFrame(),
+            pd.DataFrame(index=[0.0, 1.0]),
+            pd.DataFrame(columns=["day"]),
+        )
+
+        for pmf in empty_frames:
+            with self.subTest(shape=pmf.shape):
+                with self.assertRaisesRegex(ValueError, "must contain rows and columns"):
+                    rt_covid19.highest_density_interval(pmf)
+
+    def test_highest_density_interval_rejects_ambiguous_frame_columns(self):
+        invalid_columns = (
+            pd.Index(["day", "day"]),
+            pd.Index(["day", None]),
+            pd.MultiIndex.from_tuples([("day", 1), ("day", 2)]),
+        )
+
+        for columns in invalid_columns:
+            with self.subTest(columns=columns):
+                pmf = pd.DataFrame(
+                    [[0.2, 0.2], [0.8, 0.8]],
+                    index=[0.0, 1.0],
+                    columns=columns,
+                )
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "columns must be one-dimensional, non-missing, and unique",
+                ):
+                    rt_covid19.highest_density_interval(pmf, p=0.8)
+
     def test_highest_density_interval_rejects_invalid_grid(self):
         invalid_indexes = (
             [0.0, 0.0, 1.0],

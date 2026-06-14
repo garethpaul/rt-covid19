@@ -197,6 +197,12 @@ def highest_density_interval(pmf, p=0.9):
     if not 0 < p < 1:
         raise ValueError("Probability must be between zero and one.")
     if isinstance(pmf, pd.DataFrame):
+        if pmf.empty:
+            raise ValueError("PMF DataFrame must contain rows and columns.")
+        if pmf.columns.nlevels != 1 or pmf.columns.hasnans or not pmf.columns.is_unique:
+            raise ValueError(
+                "PMF DataFrame columns must be one-dimensional, non-missing, and unique."
+            )
         return pd.DataFrame(
             [highest_density_interval(pmf[column], p=p) for column in pmf],
             index=pmf.columns,

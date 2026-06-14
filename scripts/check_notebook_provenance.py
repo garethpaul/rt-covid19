@@ -26,6 +26,7 @@ HOSTED_VALIDATION_PLAN = DOCS_PLANS / "2026-06-10-hosted-validation-hardening.md
 HDI_GRID_PLAN = DOCS_PLANS / "2026-06-12-hdi-grid-validation.md"
 DATASET_INTEGRITY_PLAN = DOCS_PLANS / "2026-06-12-dataset-snapshot-integrity.md"
 MAKE_ROOT_PLAN = DOCS_PLANS / "2026-06-14-make-root-override-protection.md"
+HDI_FRAME_PLAN = DOCS_PLANS / "2026-06-14-hdi-frame-column-integrity.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -130,6 +131,8 @@ def main():
         failures.append("docs/plans/2026-06-12-dataset-snapshot-integrity.md is missing")
     if not MAKE_ROOT_PLAN.exists():
         failures.append("docs/plans/2026-06-14-make-root-override-protection.md is missing")
+    if not HDI_FRAME_PLAN.exists():
+        failures.append("docs/plans/2026-06-14-hdi-frame-column-integrity.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -240,6 +243,11 @@ def main():
             "grid[best[1]] - grid[best[0]]",
             "grid[candidate[1]] - grid[candidate[0]] < grid[best[1]] - grid[best[0]]",
             'raise ValueError("HDI grid must be numeric, finite, and strictly increasing.")',
+            'raise ValueError("PMF DataFrame must contain rows and columns.")',
+            '"PMF DataFrame columns must be one-dimensional, non-missing, and unique."',
+            "pmf.columns.nlevels != 1",
+            "pmf.columns.hasnans",
+            "not pmf.columns.is_unique",
             "if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():",
             "if (r_t_range < 0).any() or (np.diff(r_t_range) <= 0).any():",
             'raise ValueError("Rt range must be non-negative and strictly increasing.")',
@@ -276,6 +284,9 @@ def main():
         "def test_highest_density_interval_rejects_invalid_grid(self):",
         "def test_highest_density_interval_uses_numeric_grid_width(self):",
         "def test_highest_density_interval_preserves_earliest_equal_width(self):",
+        "def test_highest_density_interval_preserves_valid_frame_column_order(self):",
+        "def test_highest_density_interval_rejects_empty_frames(self):",
+        "def test_highest_density_interval_rejects_ambiguous_frame_columns(self):",
         "[0, 100, 101, 102]",
         "self.assertEqual([100, 101], interval.tolist())",
         "self.assertEqual([0, 1], interval.tolist())",
@@ -335,6 +346,20 @@ def main():
         parse_call = model_text.find("return _read_counties(handle)")
         if digest_check < 0 or parse_call < 0 or digest_check > parse_call:
             failures.append("rt_covid19.py must verify the dataset digest before CSV parsing")
+
+        frame_branch = model_text.find("if isinstance(pmf, pd.DataFrame):")
+        frame_empty_check = model_text.find("if pmf.empty:", frame_branch)
+        frame_column_check = model_text.find("if pmf.columns.nlevels != 1", frame_branch)
+        frame_recursion = model_text.find(
+            "[highest_density_interval(pmf[column], p=p) for column in pmf]", frame_branch
+        )
+        if not (
+            0 <= frame_branch < frame_empty_check < frame_recursion
+            and frame_branch < frame_column_check < frame_recursion
+        ):
+            failures.append(
+                "rt_covid19.py must validate HDI DataFrame shape and columns before recursion"
+            )
 
     workflow_text = WORKFLOW.read_text(encoding="utf-8") if WORKFLOW.exists() else ""
     for contract in (
@@ -407,6 +432,21 @@ def main():
                 )
         if str(MAKE_ROOT_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(f"README.md must reference {MAKE_ROOT_PLAN.relative_to(ROOT)}")
+
+    if HDI_FRAME_PLAN.exists():
+        hdi_frame_plan = HDI_FRAME_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused HDI frame tests passed",
+            "isolated `make check` passed",
+            "hostile frame-column mutations were rejected",
+        ):
+            if evidence not in hdi_frame_plan:
+                failures.append(
+                    f"{HDI_FRAME_PLAN.relative_to(ROOT)} must record verification evidence {evidence!r}"
+                )
+        if str(HDI_FRAME_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(f"README.md must reference {HDI_FRAME_PLAN.relative_to(ROOT)}")
 
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})
