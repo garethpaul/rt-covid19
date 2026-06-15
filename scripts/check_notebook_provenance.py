@@ -28,6 +28,7 @@ DATASET_INTEGRITY_PLAN = DOCS_PLANS / "2026-06-12-dataset-snapshot-integrity.md"
 MAKE_ROOT_PLAN = DOCS_PLANS / "2026-06-14-make-root-override-protection.md"
 HDI_FRAME_PLAN = DOCS_PLANS / "2026-06-14-hdi-frame-column-integrity.md"
 HDI_PROBABILITY_PLAN = DOCS_PLANS / "2026-06-14-hdi-probability-validation.md"
+SMOOTHED_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-15-smoothed-case-numeric-dtype.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -136,6 +137,8 @@ def main():
         failures.append("docs/plans/2026-06-14-hdi-frame-column-integrity.md is missing")
     if not HDI_PROBABILITY_PLAN.exists():
         failures.append("docs/plans/2026-06-14-hdi-probability-validation.md is missing")
+    if not SMOOTHED_CASE_DTYPE_PLAN.exists():
+        failures.append("docs/plans/2026-06-15-smoothed-case-numeric-dtype.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -259,6 +262,10 @@ def main():
             "if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():",
             "if (r_t_range < 0).any() or (np.diff(r_t_range) <= 0).any():",
             'raise ValueError("Rt range must be non-negative and strictly increasing.")',
+            "pd.api.types.is_numeric_dtype(series.dtype)",
+            "pd.api.types.is_bool_dtype(",
+            "pd.api.types.is_complex_dtype(",
+            'raise ValueError("Smoothed cases must use a real numeric, non-boolean dtype.")',
             ').squeeze("columns")',
         ):
             if contract not in model_text:
@@ -272,6 +279,22 @@ def main():
                 failures.append(
                     f"requirements.txt must include {expected} for model import {module}"
                 )
+
+        posterior_start = model_text.find("def get_posteriors(")
+        posterior_end = model_text.find("\ndef highest_density_interval(", posterior_start)
+        posterior_source = model_text[posterior_start:posterior_end]
+        dtype_check = posterior_source.find("pd.api.types.is_numeric_dtype(series.dtype)")
+        bool_check = posterior_source.find("pd.api.types.is_bool_dtype(series.dtype)")
+        complex_check = posterior_source.find("pd.api.types.is_complex_dtype(series.dtype)")
+        conversion = posterior_source.find("series.to_numpy(dtype=float)")
+        if not (
+            0 <= dtype_check < conversion
+            and 0 <= bool_check < conversion
+            and 0 <= complex_check < conversion
+        ):
+            failures.append(
+                "get_posteriors must reject non-real and boolean dtypes before float conversion"
+            )
 
     model_tests_text = MODEL_TESTS.read_text(encoding="utf-8") if MODEL_TESTS.exists() else ""
     for contract in (
@@ -313,6 +336,28 @@ def main():
         if contract not in model_tests_text:
             failures.append(f"tests/test_rt_covid19.py must keep model test contract: {contract}")
 
+    for test_name, contracts in {
+        "test_get_posteriors_rejects_non_numeric_case_dtypes": (
+            '["1", "2"]',
+            "[True, False]",
+            "np.array([1 + 1j, 2 + 2j])",
+            "pd.Categorical([1, 2])",
+            'pd.date_range("2020-01-01", periods=2)',
+            '"Smoothed cases must use a real numeric, non-boolean dtype"',
+        ),
+        "test_get_posteriors_accepts_numeric_case_dtypes": (
+            "(np.int64, np.float32)",
+            "posteriors.sum(axis=0)",
+            "math.isfinite(log_likelihood)",
+        ),
+    }.items():
+        test_start = model_tests_text.find(f"    def {test_name}(self):")
+        test_end = model_tests_text.find("\n    def ", test_start + 1)
+        test_source = model_tests_text[test_start : test_end if test_end >= 0 else None]
+        for contract in contracts:
+            if contract not in test_source:
+                failures.append(f"{test_name} must keep focused contract: {contract}")
+
     hdi_docs = {
         "README.md": readme_text,
         "VISION.md": (ROOT / "VISION.md").read_text(encoding="utf-8"),
@@ -338,6 +383,15 @@ def main():
         normalized = " ".join(doc_text.split())
         if "one-dimensional, non-missing, unique, increasing case indexes" not in normalized:
             failures.append(f"{doc_name} must document ordered case indexes")
+
+    smoothed_case_docs = {
+        "README.md": readme_text,
+        "VISION.md": hdi_docs["VISION.md"],
+        "CHANGES.md": hdi_docs["CHANGES.md"],
+    }
+    for doc_name, doc_text in smoothed_case_docs.items():
+        if "real numeric, non-boolean smoothed cases" not in " ".join(doc_text.split()):
+            failures.append(f"{doc_name} must document real numeric smoothed cases")
 
     snapshot_docs = dict(hdi_docs)
     snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
@@ -472,6 +526,23 @@ def main():
                 )
         if str(HDI_PROBABILITY_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(f"README.md must reference {HDI_PROBABILITY_PLAN.relative_to(ROOT)}")
+
+    if SMOOTHED_CASE_DTYPE_PLAN.exists():
+        smoothed_case_dtype_plan = SMOOTHED_CASE_DTYPE_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused posterior dtype tests passed",
+            "isolated `make check` passed",
+            "hostile smoothed-case dtype mutations were rejected",
+        ):
+            if evidence not in smoothed_case_dtype_plan:
+                failures.append(
+                    f"{SMOOTHED_CASE_DTYPE_PLAN.relative_to(ROOT)} must record verification evidence {evidence!r}"
+                )
+        if str(SMOOTHED_CASE_DTYPE_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(
+                f"README.md must reference {SMOOTHED_CASE_DTYPE_PLAN.relative_to(ROOT)}"
+            )
 
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})

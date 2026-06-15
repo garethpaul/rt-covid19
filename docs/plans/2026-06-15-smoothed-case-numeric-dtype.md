@@ -1,6 +1,6 @@
 # Smoothed Case Numeric Dtype Validation
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -12,10 +12,10 @@ results from invalid data instead of rejecting it at the model boundary.
 
 ## Requirements
 
-- Require smoothed cases to use a numeric, non-boolean pandas dtype before
+- Require smoothed cases to use a real numeric, non-boolean pandas dtype before
   converting values to floating point.
-- Reject numeric strings, booleans, categorical values, datetimes, and other
-  non-numeric dtypes with one stable `ValueError` message.
+- Reject numeric strings, booleans, complex numbers, categorical values,
+  datetimes, and other non-real dtypes with one stable `ValueError` message.
 - Preserve finite, non-negative value validation and valid integer, floating,
   and NumPy numeric Series behavior.
 - Preserve case-index, sigma, Rt-grid, posterior-normalization, and likelihood
@@ -45,7 +45,7 @@ Files: `tests/test_rt_covid19.py`, `scripts/check_notebook_provenance.py`
 
 Files: `README.md`, `VISION.md`, `CHANGES.md`
 
-- Document the numeric, non-boolean smoothed-case boundary.
+- Document the real numeric, non-boolean smoothed-case boundary.
 
 ## Verification
 
@@ -61,3 +61,25 @@ Files: `README.md`, `VISION.md`, `CHANGES.md`
 - Do not change dataset loading, case smoothing, sigma or Rt-grid validation,
   posterior formulas, HDI calculation, notebook outputs, or dependency pins.
 - Do not merge or close stacked pull requests without explicit authorization.
+
+## Work Completed
+
+- Added a real numeric, non-boolean dtype guard before posterior case values are
+  converted to floating point.
+- Added focused rejection coverage for strings, booleans, complex numbers,
+  categoricals, and datetimes plus positive integer and floating dtype coverage.
+- Added method-local static contracts for the validation order and focused
+  regressions, with synchronized README, vision, and change-history notes.
+
+## Verification Results
+
+- The focused posterior dtype tests passed, and the complete offline suite
+  passed 25 tests in the isolated Python 3.12.8 environment.
+- The isolated `make check` passed from the repository and an external
+  directory, covering provenance checks, Ruff, notebook JSON, dependency
+  integrity, and `pip-audit` with no known vulnerabilities.
+- Six hostile smoothed-case dtype mutations were rejected across numeric
+  detection, boolean and complex rejection, invalid-input coverage,
+  documentation, and completed-plan evidence.
+- Exact diff, generated-artifact, bytecode, conflict-marker, and changed-line
+  credential audits are required before shipping.

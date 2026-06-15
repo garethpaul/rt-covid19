@@ -155,6 +155,36 @@ class RtCovid19Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Sigma"):
             rt_covid19.get_posteriors(cases, sigma=0)
 
+    def test_get_posteriors_rejects_non_numeric_case_dtypes(self):
+        invalid_values = (
+            ["1", "2"],
+            [True, False],
+            np.array([1 + 1j, 2 + 2j]),
+            pd.Categorical([1, 2]),
+            pd.date_range("2020-01-01", periods=2),
+        )
+
+        for values in invalid_values:
+            with self.subTest(dtype=pd.Series(values).dtype):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "Smoothed cases must use a real numeric, non-boolean dtype",
+                ):
+                    rt_covid19.get_posteriors(pd.Series(values))
+
+    def test_get_posteriors_accepts_numeric_case_dtypes(self):
+        for dtype in (np.int64, np.float32):
+            with self.subTest(dtype=dtype):
+                cases = pd.Series([1, 2], dtype=dtype)
+
+                posteriors, log_likelihood = rt_covid19.get_posteriors(
+                    cases,
+                    r_t_range=np.array([0.0, 1.0, 2.0]),
+                )
+
+                np.testing.assert_allclose(posteriors.sum(axis=0).to_numpy(), 1.0)
+                self.assertTrue(math.isfinite(log_likelihood))
+
     def test_get_posteriors_rejects_ambiguous_indexes(self):
         for index in self.invalid_case_indexes():
             with self.subTest(index=index):

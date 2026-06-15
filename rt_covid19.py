@@ -153,6 +153,12 @@ def get_posteriors(series, sigma=0.15, r_t_range=R_T_RANGE):
     if not isinstance(series, pd.Series) or len(series) < 2:
         raise ValueError("Smoothed cases must be a pandas Series with at least two values.")
     _validate_case_index(series, "Smoothed cases")
+    if (
+        not pd.api.types.is_numeric_dtype(series.dtype)
+        or pd.api.types.is_bool_dtype(series.dtype)
+        or pd.api.types.is_complex_dtype(series.dtype)
+    ):
+        raise ValueError("Smoothed cases must use a real numeric, non-boolean dtype.")
     values = series.to_numpy(dtype=float)
     if not np.isfinite(values).all() or (values < 0).any():
         raise ValueError("Smoothed cases must contain finite, non-negative values.")

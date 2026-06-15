@@ -29,6 +29,7 @@ Priority:
 - Select HDI candidates by numeric endpoint width on nonuniform grids
 - Keep one-dimensional, non-missing, unique, increasing case indexes behind
   preprocessing and posterior calculations
+- Require real numeric, non-boolean smoothed cases before posterior calculations
 - Keep Matplotlib configured for headless reproduction runs
 - Keep notebook, provenance, and runtime configuration URL references on HTTPS
 - Keep the runtime NYT CSV source named as `DATA_SOURCE_URL`

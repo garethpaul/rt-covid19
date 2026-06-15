@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-06-15
+
+- Required real numeric, non-boolean smoothed cases before posterior
+  calculations, rejecting coercible strings, booleans, complex numbers,
+  categoricals, and datetimes.
+
 ## 2026-06-14
 
 - Added a stable finite real-number boundary for HDI probability mass, rejecting

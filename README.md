@@ -105,6 +105,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   by numeric endpoint width while preserving the earliest equal-width result.
 - `make check` also requires one-dimensional, non-missing, unique, increasing
   case indexes before preprocessing or posterior calculations.
+- Posterior calculations require real numeric, non-boolean smoothed cases before
+  floating-point conversion.
 - GitHub Actions runs the same gate on Python 3.12 for pushes and pull requests.
 - The canonical gate also runs `pip check`, and hosted installs require binary
   distributions on a fixed Ubuntu 24.04 runner.
@@ -166,6 +168,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   unambiguous posterior observation columns before HDI calculation.
 - See `docs/plans/2026-06-14-hdi-probability-validation.md` for the finite real
   open-interval probability boundary.
+- See `docs/plans/2026-06-15-smoothed-case-numeric-dtype.md` for real numeric,
+  non-boolean smoothed cases at the posterior boundary.
 
 ## Contributing
 
