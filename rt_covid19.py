@@ -132,8 +132,12 @@ def prepare_cases(cases):
     if not isinstance(cases, pd.Series) or cases.empty:
         raise ValueError("Cases must be a non-empty pandas Series.")
     _validate_case_index(cases, "Cases")
-    if not pd.api.types.is_numeric_dtype(cases):
-        raise ValueError("Cases must contain numeric values.")
+    if (
+        not pd.api.types.is_numeric_dtype(cases.dtype)
+        or pd.api.types.is_bool_dtype(cases.dtype)
+        or pd.api.types.is_complex_dtype(cases.dtype)
+    ):
+        raise ValueError("Cases must use a real numeric, non-boolean dtype.")
     if not np.isfinite(cases.to_numpy(dtype=float)).all():
         raise ValueError("Cases must contain finite values.")
 

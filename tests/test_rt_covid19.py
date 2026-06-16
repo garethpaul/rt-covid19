@@ -128,6 +128,33 @@ class RtCovid19Tests(unittest.TestCase):
         self.assertGreater(len(smoothed), 0)
         self.assertTrue(np.isfinite(smoothed).all())
 
+    def test_prepare_cases_rejects_non_real_numeric_dtypes(self):
+        index = pd.date_range("2020-01-01", periods=8)
+        invalid_values = (
+            pd.Series([False, True, True, True, True, True, True, True], index=index),
+            pd.Series(np.arange(1, 9) + 1j, index=index),
+        )
+
+        for cases in invalid_values:
+            with self.subTest(dtype=cases.dtype):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "Cases must use a real numeric, non-boolean dtype",
+                ):
+                    rt_covid19.prepare_cases(cases)
+
+    def test_prepare_cases_accepts_real_numeric_dtypes(self):
+        index = pd.date_range("2020-01-01", periods=8)
+        for dtype in (np.int64, np.float32):
+            with self.subTest(dtype=dtype):
+                cases = pd.Series([1, 2, 4, 7, 11, 16, 22, 29], index=index, dtype=dtype)
+
+                original, smoothed = rt_covid19.prepare_cases(cases)
+
+                self.assertEqual(original.index.tolist(), smoothed.index.tolist())
+                self.assertGreater(len(smoothed), 0)
+                self.assertTrue(np.isfinite(smoothed).all())
+
     def test_prepare_cases_rejects_ambiguous_indexes(self):
         for index in self.invalid_case_indexes():
             with self.subTest(index=index):

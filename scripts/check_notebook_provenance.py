@@ -29,6 +29,7 @@ MAKE_ROOT_PLAN = DOCS_PLANS / "2026-06-14-make-root-override-protection.md"
 HDI_FRAME_PLAN = DOCS_PLANS / "2026-06-14-hdi-frame-column-integrity.md"
 HDI_PROBABILITY_PLAN = DOCS_PLANS / "2026-06-14-hdi-probability-validation.md"
 SMOOTHED_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-15-smoothed-case-numeric-dtype.md"
+CUMULATIVE_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-numeric-dtype.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -139,6 +140,8 @@ def main():
         failures.append("docs/plans/2026-06-14-hdi-probability-validation.md is missing")
     if not SMOOTHED_CASE_DTYPE_PLAN.exists():
         failures.append("docs/plans/2026-06-15-smoothed-case-numeric-dtype.md is missing")
+    if not CUMULATIVE_CASE_DTYPE_PLAN.exists():
+        failures.append("docs/plans/2026-06-16-cumulative-case-numeric-dtype.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -296,6 +299,24 @@ def main():
                 "get_posteriors must reject non-real and boolean dtypes before float conversion"
             )
 
+        prepare_start = model_text.find("def prepare_cases(")
+        prepare_end = model_text.find("\ndef get_posteriors(", prepare_start)
+        prepare_source = model_text[prepare_start:prepare_end]
+        prepare_dtype_check = prepare_source.find("pd.api.types.is_numeric_dtype(cases.dtype)")
+        prepare_bool_check = prepare_source.find("pd.api.types.is_bool_dtype(cases.dtype)")
+        prepare_complex_check = prepare_source.find("pd.api.types.is_complex_dtype(cases.dtype)")
+        prepare_conversion = prepare_source.find("cases.to_numpy(dtype=float)")
+        if not (
+            0 <= prepare_dtype_check < prepare_conversion
+            and 0 <= prepare_bool_check < prepare_conversion
+            and 0 <= prepare_complex_check < prepare_conversion
+            and 'raise ValueError("Cases must use a real numeric, non-boolean dtype.")'
+            in prepare_source
+        ):
+            failures.append(
+                "prepare_cases must reject non-real and boolean dtypes before float conversion"
+            )
+
     model_tests_text = MODEL_TESTS.read_text(encoding="utf-8") if MODEL_TESTS.exists() else ""
     for contract in (
         "def test_get_posteriors_rejects_invalid_rt_range(self):",
@@ -337,6 +358,16 @@ def main():
             failures.append(f"tests/test_rt_covid19.py must keep model test contract: {contract}")
 
     for test_name, contracts in {
+        "test_prepare_cases_rejects_non_real_numeric_dtypes": (
+            "[False, True, True, True, True, True, True, True]",
+            "np.arange(1, 9) + 1j",
+            '"Cases must use a real numeric, non-boolean dtype"',
+        ),
+        "test_prepare_cases_accepts_real_numeric_dtypes": (
+            "(np.int64, np.float32)",
+            "original.index.tolist()",
+            "np.isfinite(smoothed).all()",
+        ),
         "test_get_posteriors_rejects_non_numeric_case_dtypes": (
             '["1", "2"]',
             "[True, False]",
@@ -392,6 +423,17 @@ def main():
     for doc_name, doc_text in smoothed_case_docs.items():
         if "real numeric, non-boolean smoothed cases" not in " ".join(doc_text.split()):
             failures.append(f"{doc_name} must document real numeric smoothed cases")
+
+    cumulative_case_docs = {
+        "README.md": readme_text,
+        "DATA_PROVENANCE.md": provenance_text,
+        "SECURITY.md": (ROOT / "SECURITY.md").read_text(encoding="utf-8"),
+        "VISION.md": hdi_docs["VISION.md"],
+        "CHANGES.md": hdi_docs["CHANGES.md"],
+    }
+    for doc_name, doc_text in cumulative_case_docs.items():
+        if "real numeric, non-boolean cumulative cases" not in " ".join(doc_text.split()):
+            failures.append(f"{doc_name} must document real numeric cumulative cases")
 
     snapshot_docs = dict(hdi_docs)
     snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
@@ -542,6 +584,23 @@ def main():
         if str(SMOOTHED_CASE_DTYPE_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(
                 f"README.md must reference {SMOOTHED_CASE_DTYPE_PLAN.relative_to(ROOT)}"
+            )
+
+    if CUMULATIVE_CASE_DTYPE_PLAN.exists():
+        cumulative_case_dtype_plan = CUMULATIVE_CASE_DTYPE_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused cumulative-case dtype tests passed",
+            "isolated `make check` passed",
+            "hostile cumulative-case dtype mutations were rejected",
+        ):
+            if evidence not in cumulative_case_dtype_plan:
+                failures.append(
+                    f"{CUMULATIVE_CASE_DTYPE_PLAN.relative_to(ROOT)} must record verification evidence {evidence!r}"
+                )
+        if str(CUMULATIVE_CASE_DTYPE_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(
+                f"README.md must reference {CUMULATIVE_CASE_DTYPE_PLAN.relative_to(ROOT)}"
             )
 
     if notebook:

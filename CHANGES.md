@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-16
+
+- Required real numeric, non-boolean cumulative cases before differencing and
+  smoothing, rejecting boolean and complex Series without lossy coercion.
+
 ## 2026-06-15
 
 - Required real numeric, non-boolean smoothed cases before posterior

@@ -1,10 +1,12 @@
 ---
 title: Cumulative Case Numeric Dtype Validation
-status: planned
+status: completed
 date: 2026-06-16
 ---
 
 # Cumulative Case Numeric Dtype Validation
+
+## Status: Completed
 
 ## Priority
 
@@ -71,4 +73,12 @@ data to be normalized into plausible-looking daily cases.
 
 ## Verification Completed
 
-Pending implementation and bounded verification.
+- Pre-fix probes confirmed that boolean cumulative cases were accepted and
+  that complex cumulative cases were accepted with lossy-cast warnings.
+- The focused cumulative-case dtype tests passed for rejected boolean and
+  complex inputs and accepted integer and floating-point inputs.
+- The complete 27-test synthetic model suite passed.
+- The isolated `make check` passed from the repository and through the
+  absolute Makefile path from an external directory under Python 3.12.
+- Seven hostile cumulative-case dtype mutations were rejected across the
+  implementation, regressions, static checker, guidance, and completed plan.
