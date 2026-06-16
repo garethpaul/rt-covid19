@@ -155,6 +155,15 @@ class RtCovid19Tests(unittest.TestCase):
                 self.assertGreater(len(smoothed), 0)
                 self.assertTrue(np.isfinite(smoothed).all())
 
+    def test_prepare_cases_rejects_non_finite_cumulative_values(self):
+        index = pd.date_range("2020-01-01", periods=8)
+        for non_finite in (np.nan, np.inf, -np.inf):
+            with self.subTest(non_finite=non_finite):
+                values = [0.0, 1.0, 3.0, non_finite, 5.0, 8.0, 12.0, 17.0]
+                cases = pd.Series(values, index=index, dtype=float)
+                with self.assertRaisesRegex(ValueError, "Cases must contain finite values"):
+                    rt_covid19.prepare_cases(cases)
+
     def test_prepare_cases_rejects_negative_cumulative_values(self):
         index = pd.date_range("2020-01-01", periods=8)
         for values in (

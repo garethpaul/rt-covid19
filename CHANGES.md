@@ -2,6 +2,9 @@
 
 ## 2026-06-16
 
+- Protected the existing finite cumulative cases preprocessing guard with
+  focused `NaN` and infinity regressions plus mutation-sensitive provenance
+  contracts.
 - Required non-negative cumulative cases before differencing or smoothing so
   impossible totals cannot become plausible daily model inputs.
 - Required real numeric, non-boolean cumulative cases before differencing and

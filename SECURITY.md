@@ -45,8 +45,9 @@ Model inputs must also keep one-dimensional, non-missing, unique, increasing
 case indexes so duplicate or reordered observations cannot create ambiguous
 rolling windows or posterior columns.
 Case preprocessing must require real numeric, non-boolean cumulative cases and
-must require non-negative cumulative cases so booleans, lossy complex
-coercions, and impossible negative totals cannot become plausible model inputs.
+must require finite cumulative cases and non-negative cumulative cases so
+booleans, lossy complex coercions, non-finite values, and impossible negative
+totals cannot become plausible model inputs.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 

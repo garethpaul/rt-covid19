@@ -31,6 +31,7 @@ HDI_PROBABILITY_PLAN = DOCS_PLANS / "2026-06-14-hdi-probability-validation.md"
 SMOOTHED_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-15-smoothed-case-numeric-dtype.md"
 CUMULATIVE_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-numeric-dtype.md"
 CUMULATIVE_CASE_VALUE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-value-validation.md"
+CUMULATIVE_CASE_FINITE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-finite-regression.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -309,6 +310,7 @@ def main():
         prepare_bool_check = prepare_source.find("pd.api.types.is_bool_dtype(cases.dtype)")
         prepare_complex_check = prepare_source.find("pd.api.types.is_complex_dtype(cases.dtype)")
         prepare_conversion = prepare_source.find("cases.to_numpy(dtype=float)")
+        prepare_finite_check = prepare_source.find("np.isfinite(case_values).all()")
         prepare_negative_check = prepare_source.find("(case_values < 0).any()")
         prepare_difference = prepare_source.find("new_cases = cases.diff()")
         if not (
@@ -322,12 +324,14 @@ def main():
                 "prepare_cases must reject non-real and boolean dtypes before float conversion"
             )
         if not (
-            0 <= prepare_conversion < prepare_negative_check < prepare_difference
+            0 <= prepare_conversion < prepare_finite_check < prepare_negative_check
+            and prepare_negative_check < prepare_difference
+            and 'raise ValueError("Cases must contain finite values.")' in prepare_source
             and 'raise ValueError("Cases must contain non-negative cumulative values.")'
             in prepare_source
         ):
             failures.append(
-                "prepare_cases must reject negative cumulative values before differencing"
+                "prepare_cases must reject non-finite and negative cumulative values before differencing"
             )
 
     model_tests_text = MODEL_TESTS.read_text(encoding="utf-8") if MODEL_TESTS.exists() else ""
@@ -335,8 +339,11 @@ def main():
         "def test_get_posteriors_rejects_invalid_rt_range(self):",
         "def test_prepare_cases_rejects_ambiguous_indexes(self):",
         "def test_prepare_cases_rejects_negative_cumulative_values(self):",
+        "def test_prepare_cases_rejects_non_finite_cumulative_values(self):",
         "def test_prepare_cases_preserves_non_negative_downward_revisions(self):",
         '"Cases must contain non-negative cumulative values"',
+        '"Cases must contain finite values"',
+        "for non_finite in (np.nan, np.inf, -np.inf):",
         "[-8, -7, -6, -5, -4, -3, -2, -1]",
         "[0, 1, 3, -1, 5, 8, 12, 17]",
         "[0, 2, 5, 4, 7, 11, 16, 22]",
@@ -457,6 +464,8 @@ def main():
             failures.append(f"{doc_name} must document real numeric cumulative cases")
         if "non-negative cumulative cases" not in normalized:
             failures.append(f"{doc_name} must document non-negative cumulative cases")
+        if not re.search(r"(?<!non-)finite cumulative cases", normalized, re.IGNORECASE):
+            failures.append(f"{doc_name} must document finite cumulative cases")
 
     snapshot_docs = dict(hdi_docs)
     snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
@@ -642,6 +651,24 @@ def main():
         if str(CUMULATIVE_CASE_VALUE_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(
                 f"README.md must reference {CUMULATIVE_CASE_VALUE_PLAN.relative_to(ROOT)}"
+            )
+
+    if CUMULATIVE_CASE_FINITE_PLAN.exists():
+        cumulative_case_finite_plan = CUMULATIVE_CASE_FINITE_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused non-finite cumulative-value tests passed",
+            "isolated `make check` passed",
+            "hostile finite-value mutations were rejected",
+        ):
+            if evidence not in cumulative_case_finite_plan:
+                failures.append(
+                    f"{CUMULATIVE_CASE_FINITE_PLAN.relative_to(ROOT)} "
+                    f"must record verification evidence {evidence!r}"
+                )
+        if str(CUMULATIVE_CASE_FINITE_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(
+                f"README.md must reference {CUMULATIVE_CASE_FINITE_PLAN.relative_to(ROOT)}"
             )
 
     if notebook:

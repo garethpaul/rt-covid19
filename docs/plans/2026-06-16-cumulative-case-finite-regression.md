@@ -1,12 +1,12 @@
 ---
 title: Cumulative Case Finite Regression
-status: in_progress
+status: completed
 date: 2026-06-16
 ---
 
 # Cumulative Case Finite Regression
 
-## Status: In Progress
+## Status: Completed
 
 ## Priority
 
@@ -40,3 +40,27 @@ contract and can be removed without the current suite detecting the change.
   fingerprints, dependency pins, notebook outputs, or workflow shape.
 - Do not fetch live public-health data or present current health guidance.
 - Keep PR #10 and its predecessors open and preserve base-first stack ordering.
+
+## Work Completed
+
+- Added focused regressions for `NaN`, positive infinity, and negative infinity
+  at the cumulative-case preprocessing boundary.
+- Extended notebook-independent provenance checks to keep the finite guard
+  ordered after numeric conversion and before negative-value validation and
+  differencing.
+- Updated README, provenance, security, vision, and changelog guidance with the
+  finite cumulative cases invariant.
+
+## Verification Completed
+
+- The focused non-finite cumulative-value tests passed, and the complete
+  30-test synthetic model suite passed.
+- Ruff format and lint checks, notebook JSON validation, `pip check`, and
+  `pip-audit` passed in a clean pinned Python 3.12 environment with
+  `PYTHONPATH` removed.
+- The isolated `make check` passed from the repository and through the absolute
+  Makefile path from an external directory.
+- Seven hostile finite-value mutations were rejected across implementation,
+  regression, checker, documentation, and completed-plan contracts.
+- Exact diff, whitespace, generated-artifact, conflict-marker, file-mode,
+  binary, large-file, and credential-shaped-addition audits passed.
