@@ -58,7 +58,7 @@ The notebook:
 Reusable preprocessing and posterior helpers require one-dimensional,
 non-missing, unique, increasing case indexes before order-sensitive operations.
 Preprocessing also requires real numeric, non-boolean cumulative cases before
-differencing or Gaussian smoothing.
+differencing or Gaussian smoothing and requires non-negative cumulative cases.
 
 ## Presentation Defaults
 

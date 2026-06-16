@@ -1,12 +1,12 @@
 ---
 title: Cumulative Case Value Validation
-status: planned
+status: completed
 date: 2026-06-16
 ---
 
 # Cumulative Case Value Validation
 
-## Status: Planned
+## Status: Completed
 
 ## Priority
 
@@ -68,3 +68,28 @@ downstream check and produce credible-looking model inputs.
 - Any negative cumulative case value fails before differencing or smoothing.
 - Zero and positive integer or floating-point Series retain existing behavior.
 - Static and maintainer contracts keep the value boundary visible.
+
+## Work Completed
+
+- Added a non-negative cumulative-value guard before differencing and Gaussian
+  smoothing.
+- Added focused all-negative and mixed-negative regressions while retaining
+  zero and positive integer and floating-point coverage.
+- Extended notebook-independent static contracts, provenance, security,
+  maintenance guidance, changelog, and plan indexing.
+
+## Verification Completed
+
+- Pre-fix evidence confirmed that negative cumulative totals were accepted and
+  normalized into plausible positive daily and smoothed values.
+- The focused cumulative-value tests passed, and the complete 29-test synthetic
+  model suite passed.
+- Ruff format and lint checks, notebook JSON validation, `pip check`, and
+  `pip-audit` passed in an isolated pinned Python 3.12 environment.
+- The isolated `make check` passed from the repository and through the absolute
+  Makefile path from an external directory.
+- Seven hostile cumulative-value mutations were rejected across the
+  implementation, regressions, static checker, guidance, changelog, and
+  completed plan.
+- Exact diff, whitespace, generated-artifact, conflict-marker, file-mode,
+  binary, large-file, and credential-shaped-addition audits passed.

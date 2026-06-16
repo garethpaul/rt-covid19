@@ -2,6 +2,8 @@
 
 ## 2026-06-16
 
+- Required non-negative cumulative cases before differencing or smoothing so
+  impossible totals cannot become plausible daily model inputs.
 - Required real numeric, non-boolean cumulative cases before differencing and
   smoothing, rejecting boolean and complex Series without lossy coercion.
 

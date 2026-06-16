@@ -147,13 +147,36 @@ class RtCovid19Tests(unittest.TestCase):
         index = pd.date_range("2020-01-01", periods=8)
         for dtype in (np.int64, np.float32):
             with self.subTest(dtype=dtype):
-                cases = pd.Series([1, 2, 4, 7, 11, 16, 22, 29], index=index, dtype=dtype)
+                cases = pd.Series([0, 1, 3, 6, 10, 15, 21, 28], index=index, dtype=dtype)
 
                 original, smoothed = rt_covid19.prepare_cases(cases)
 
                 self.assertEqual(original.index.tolist(), smoothed.index.tolist())
                 self.assertGreater(len(smoothed), 0)
                 self.assertTrue(np.isfinite(smoothed).all())
+
+    def test_prepare_cases_rejects_negative_cumulative_values(self):
+        index = pd.date_range("2020-01-01", periods=8)
+        for values in (
+            [-8, -7, -6, -5, -4, -3, -2, -1],
+            [0, 1, 3, -1, 5, 8, 12, 17],
+        ):
+            with self.subTest(values=values):
+                cases = pd.Series(values, index=index, dtype=float)
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "Cases must contain non-negative cumulative values",
+                ):
+                    rt_covid19.prepare_cases(cases)
+
+    def test_prepare_cases_preserves_non_negative_downward_revisions(self):
+        index = pd.date_range("2020-01-01", periods=8)
+        cases = pd.Series([0, 2, 5, 4, 7, 11, 16, 22], index=index, dtype=float)
+
+        original, smoothed = rt_covid19.prepare_cases(cases)
+
+        self.assertIn(-1.0, original.tolist())
+        self.assertEqual(original.index.tolist(), smoothed.index.tolist())
 
     def test_prepare_cases_rejects_ambiguous_indexes(self):
         for index in self.invalid_case_indexes():

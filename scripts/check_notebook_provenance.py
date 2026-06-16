@@ -30,6 +30,7 @@ HDI_FRAME_PLAN = DOCS_PLANS / "2026-06-14-hdi-frame-column-integrity.md"
 HDI_PROBABILITY_PLAN = DOCS_PLANS / "2026-06-14-hdi-probability-validation.md"
 SMOOTHED_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-15-smoothed-case-numeric-dtype.md"
 CUMULATIVE_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-numeric-dtype.md"
+CUMULATIVE_CASE_VALUE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-value-validation.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -142,6 +143,8 @@ def main():
         failures.append("docs/plans/2026-06-15-smoothed-case-numeric-dtype.md is missing")
     if not CUMULATIVE_CASE_DTYPE_PLAN.exists():
         failures.append("docs/plans/2026-06-16-cumulative-case-numeric-dtype.md is missing")
+    if not CUMULATIVE_CASE_VALUE_PLAN.exists():
+        failures.append("docs/plans/2026-06-16-cumulative-case-value-validation.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -306,6 +309,8 @@ def main():
         prepare_bool_check = prepare_source.find("pd.api.types.is_bool_dtype(cases.dtype)")
         prepare_complex_check = prepare_source.find("pd.api.types.is_complex_dtype(cases.dtype)")
         prepare_conversion = prepare_source.find("cases.to_numpy(dtype=float)")
+        prepare_negative_check = prepare_source.find("(case_values < 0).any()")
+        prepare_difference = prepare_source.find("new_cases = cases.diff()")
         if not (
             0 <= prepare_dtype_check < prepare_conversion
             and 0 <= prepare_bool_check < prepare_conversion
@@ -316,11 +321,26 @@ def main():
             failures.append(
                 "prepare_cases must reject non-real and boolean dtypes before float conversion"
             )
+        if not (
+            0 <= prepare_conversion < prepare_negative_check < prepare_difference
+            and 'raise ValueError("Cases must contain non-negative cumulative values.")'
+            in prepare_source
+        ):
+            failures.append(
+                "prepare_cases must reject negative cumulative values before differencing"
+            )
 
     model_tests_text = MODEL_TESTS.read_text(encoding="utf-8") if MODEL_TESTS.exists() else ""
     for contract in (
         "def test_get_posteriors_rejects_invalid_rt_range(self):",
         "def test_prepare_cases_rejects_ambiguous_indexes(self):",
+        "def test_prepare_cases_rejects_negative_cumulative_values(self):",
+        "def test_prepare_cases_preserves_non_negative_downward_revisions(self):",
+        '"Cases must contain non-negative cumulative values"',
+        "[-8, -7, -6, -5, -4, -3, -2, -1]",
+        "[0, 1, 3, -1, 5, 8, 12, 17]",
+        "[0, 2, 5, 4, 7, 11, 16, 22]",
+        "self.assertIn(-1.0, original.tolist())",
         "def test_get_posteriors_rejects_ambiguous_indexes(self):",
         "def invalid_case_indexes():",
         "pd.Index([0, 0, 1])",
@@ -432,8 +452,11 @@ def main():
         "CHANGES.md": hdi_docs["CHANGES.md"],
     }
     for doc_name, doc_text in cumulative_case_docs.items():
-        if "real numeric, non-boolean cumulative cases" not in " ".join(doc_text.split()):
+        normalized = " ".join(doc_text.split())
+        if "real numeric, non-boolean cumulative cases" not in normalized:
             failures.append(f"{doc_name} must document real numeric cumulative cases")
+        if "non-negative cumulative cases" not in normalized:
+            failures.append(f"{doc_name} must document non-negative cumulative cases")
 
     snapshot_docs = dict(hdi_docs)
     snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
@@ -601,6 +624,24 @@ def main():
         if str(CUMULATIVE_CASE_DTYPE_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(
                 f"README.md must reference {CUMULATIVE_CASE_DTYPE_PLAN.relative_to(ROOT)}"
+            )
+
+    if CUMULATIVE_CASE_VALUE_PLAN.exists():
+        cumulative_case_value_plan = CUMULATIVE_CASE_VALUE_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused cumulative-value tests passed",
+            "isolated `make check` passed",
+            "hostile cumulative-value mutations were rejected",
+        ):
+            if evidence not in cumulative_case_value_plan:
+                failures.append(
+                    f"{CUMULATIVE_CASE_VALUE_PLAN.relative_to(ROOT)} "
+                    f"must record verification evidence {evidence!r}"
+                )
+        if str(CUMULATIVE_CASE_VALUE_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(
+                f"README.md must reference {CUMULATIVE_CASE_VALUE_PLAN.relative_to(ROOT)}"
             )
 
     if notebook:

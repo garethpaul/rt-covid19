@@ -106,7 +106,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - `make check` also requires one-dimensional, non-missing, unique, increasing
   case indexes before preprocessing or posterior calculations.
 - Case preprocessing requires real numeric, non-boolean cumulative cases before
-  differencing or smoothing.
+  differencing or smoothing. It also requires non-negative cumulative cases.
 - Posterior calculations require real numeric, non-boolean smoothed cases before
   floating-point conversion.
 - GitHub Actions runs the same gate on Python 3.12 for pushes and pull requests.
@@ -174,6 +174,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   non-boolean smoothed cases at the posterior boundary.
 - See `docs/plans/2026-06-16-cumulative-case-numeric-dtype.md` for real numeric,
   non-boolean cumulative cases at the preprocessing boundary.
+- See `docs/plans/2026-06-16-cumulative-case-value-validation.md` for
+  non-negative cumulative cases at the preprocessing boundary.
 
 ## Contributing
 

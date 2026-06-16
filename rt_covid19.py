@@ -138,8 +138,11 @@ def prepare_cases(cases):
         or pd.api.types.is_complex_dtype(cases.dtype)
     ):
         raise ValueError("Cases must use a real numeric, non-boolean dtype.")
-    if not np.isfinite(cases.to_numpy(dtype=float)).all():
+    case_values = cases.to_numpy(dtype=float)
+    if not np.isfinite(case_values).all():
         raise ValueError("Cases must contain finite values.")
+    if (case_values < 0).any():
+        raise ValueError("Cases must contain non-negative cumulative values.")
 
     new_cases = cases.diff()
     smoothed = (
