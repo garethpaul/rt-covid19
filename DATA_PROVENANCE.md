@@ -11,6 +11,8 @@ which uses `pandas.read_csv`. The helper names this runtime source as
 `DATA_SOURCE_URL`. The repository does
 not commit a local copy of the dataset. Notebook, provenance, and local runtime
 configuration URL references should use HTTPS.
+Ingested data must contain real numeric, non-boolean county case totals before
+finite and non-negative value validation.
 The maintained loader accepts only the configured HTTPS GitHub source for live
 downloads, uses a 30-second timeout, and caps the response at 512 MiB by
 default. Redirects are rejected so credentials or data requests cannot cross

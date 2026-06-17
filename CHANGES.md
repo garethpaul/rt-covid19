@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-17
+
+- Required real numeric, non-boolean county case totals at ingestion, rejecting
+  boolean and complex values before float conversion.
+
 ## 2026-06-16
 
 - Protected the existing finite cumulative cases preprocessing guard with

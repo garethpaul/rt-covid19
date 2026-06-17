@@ -38,6 +38,44 @@ class RtCovid19Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must not be negative"):
             rt_covid19.load_counties(source)
 
+    def test_load_counties_rejects_non_real_numeric_dtypes(self):
+        boolean_source = io.StringIO(
+            "date,county,state,fips,cases,deaths\n"
+            "2020-01-01,Alpha,CA,1,False,0\n"
+            "2020-01-02,Alpha,CA,1,True,0\n"
+        )
+        with self.assertRaisesRegex(
+            ValueError, "County case totals must use a real numeric, non-boolean dtype"
+        ):
+            rt_covid19.load_counties(boolean_source)
+
+        string_source = io.StringIO(
+            "date,county,state,fips,cases,deaths\n"
+            "2020-01-01,Alpha,CA,1,one,0\n"
+            "2020-01-02,Alpha,CA,1,two,0\n"
+        )
+        with self.assertRaisesRegex(
+            ValueError, "County case totals must use a real numeric, non-boolean dtype"
+        ):
+            rt_covid19.load_counties(string_source)
+
+        complex_counties = pd.Series([1 + 1j, 2 + 2j], dtype=np.complex128)
+        with mock.patch("rt_covid19._read_counties", return_value=complex_counties):
+            with self.assertRaisesRegex(
+                ValueError, "County case totals must use a real numeric, non-boolean dtype"
+            ):
+                rt_covid19.load_counties(io.StringIO(""))
+
+    def test_load_counties_accepts_real_numeric_dtypes(self):
+        for dtype in (np.int64, np.float32):
+            with self.subTest(dtype=dtype):
+                expected = pd.Series([1, 3], index=[2, 1], name="cases", dtype=dtype)
+                with mock.patch("rt_covid19._read_counties", return_value=expected):
+                    counties = rt_covid19.load_counties(io.StringIO(""))
+
+                self.assertEqual(dtype, counties.dtype.type)
+                self.assertEqual([3, 1], counties.tolist())
+
     def test_load_counties_bounds_remote_download(self):
         response = mock.MagicMock()
         response.__enter__.return_value = response

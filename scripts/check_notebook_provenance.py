@@ -32,6 +32,7 @@ SMOOTHED_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-15-smoothed-case-numeric-dtype.
 CUMULATIVE_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-numeric-dtype.md"
 CUMULATIVE_CASE_VALUE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-value-validation.md"
 CUMULATIVE_CASE_FINITE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-finite-regression.md"
+COUNTY_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-17-county-case-numeric-dtype.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -146,6 +147,8 @@ def main():
         failures.append("docs/plans/2026-06-16-cumulative-case-numeric-dtype.md is missing")
     if not CUMULATIVE_CASE_VALUE_PLAN.exists():
         failures.append("docs/plans/2026-06-16-cumulative-case-value-validation.md is missing")
+    if not COUNTY_CASE_DTYPE_PLAN.exists():
+        failures.append("docs/plans/2026-06-17-county-case-numeric-dtype.md is missing")
 
     docs_plans = sorted(DOCS_PLANS.glob("*.md")) if DOCS_PLANS.exists() else []
     if not docs_plans:
@@ -235,6 +238,10 @@ def main():
             "digest.hexdigest() != DATA_SOURCE_SHA256",
             "County data SHA-256 does not match the reviewed snapshot.",
             "def load_counties(",
+            "pd.api.types.is_numeric_dtype(counties.dtype)",
+            "pd.api.types.is_bool_dtype(counties.dtype)",
+            "pd.api.types.is_complex_dtype(counties.dtype)",
+            'raise ValueError("County case totals must use a real numeric, non-boolean dtype.")',
             "def _validate_case_index(series, label):",
             "index.nlevels != 1",
             "index.hasnans",
@@ -286,6 +293,24 @@ def main():
                 failures.append(
                     f"requirements.txt must include {expected} for model import {module}"
                 )
+
+        load_start = model_text.find("def load_counties(")
+        load_end = model_text.find("\ndef prepare_cases(", load_start)
+        load_source = model_text[load_start:load_end]
+        county_dtype_check = load_source.find("pd.api.types.is_numeric_dtype(counties.dtype)")
+        county_bool_check = load_source.find("pd.api.types.is_bool_dtype(counties.dtype)")
+        county_complex_check = load_source.find("pd.api.types.is_complex_dtype(counties.dtype)")
+        county_conversion = load_source.find("counties.to_numpy(dtype=float)")
+        if not (
+            0 <= county_dtype_check < county_conversion
+            and 0 <= county_bool_check < county_conversion
+            and 0 <= county_complex_check < county_conversion
+            and 'raise ValueError("County case totals must use a real numeric, non-boolean dtype.")'
+            in load_source
+        ):
+            failures.append(
+                "load_counties must reject non-real and boolean case dtypes before float conversion"
+            )
 
         posterior_start = model_text.find("def get_posteriors(")
         posterior_end = model_text.find("\ndef highest_density_interval(", posterior_start)
@@ -408,6 +433,19 @@ def main():
             "posteriors.sum(axis=0)",
             "math.isfinite(log_likelihood)",
         ),
+        "test_load_counties_rejects_non_real_numeric_dtypes": (
+            "False,0",
+            "True,0",
+            "one,0",
+            "two,0",
+            "np.complex128",
+            '"County case totals must use a real numeric, non-boolean dtype"',
+        ),
+        "test_load_counties_accepts_real_numeric_dtypes": (
+            "(np.int64, np.float32)",
+            "counties.dtype.type",
+            "[3, 1]",
+        ),
     }.items():
         test_start = model_tests_text.find(f"    def {test_name}(self):")
         test_end = model_tests_text.find("\n    def ", test_start + 1)
@@ -466,6 +504,17 @@ def main():
             failures.append(f"{doc_name} must document non-negative cumulative cases")
         if not re.search(r"(?<!non-)finite cumulative cases", normalized, re.IGNORECASE):
             failures.append(f"{doc_name} must document finite cumulative cases")
+
+    county_case_docs = {
+        "README.md": readme_text,
+        "DATA_PROVENANCE.md": provenance_text,
+        "SECURITY.md": (ROOT / "SECURITY.md").read_text(encoding="utf-8"),
+        "VISION.md": hdi_docs["VISION.md"],
+        "CHANGES.md": hdi_docs["CHANGES.md"],
+    }
+    for doc_name, doc_text in county_case_docs.items():
+        if "real numeric, non-boolean county case totals" not in " ".join(doc_text.split()):
+            failures.append(f"{doc_name} must document real numeric county case totals")
 
     snapshot_docs = dict(hdi_docs)
     snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
@@ -670,6 +719,24 @@ def main():
             failures.append(
                 f"README.md must reference {CUMULATIVE_CASE_FINITE_PLAN.relative_to(ROOT)}"
             )
+
+    if COUNTY_CASE_DTYPE_PLAN.exists():
+        county_case_dtype_plan = COUNTY_CASE_DTYPE_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused county dtype tests passed",
+            "complete 32-test synthetic model",
+            "isolated `make check` passed",
+            "hostile county dtype mutations were rejected",
+            "Exact diff",
+        ):
+            if evidence not in county_case_dtype_plan:
+                failures.append(
+                    f"{COUNTY_CASE_DTYPE_PLAN.relative_to(ROOT)} "
+                    f"must record verification evidence {evidence!r}"
+                )
+        if str(COUNTY_CASE_DTYPE_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(f"README.md must reference {COUNTY_CASE_DTYPE_PLAN.relative_to(ROOT)}")
 
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})

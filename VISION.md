@@ -29,6 +29,7 @@ Priority:
 - Select HDI candidates by numeric endpoint width on nonuniform grids
 - Keep one-dimensional, non-missing, unique, increasing case indexes behind
   preprocessing and posterior calculations
+- Require real numeric, non-boolean county case totals at ingestion
 - Require real numeric, non-boolean cumulative cases before preprocessing
 - Require finite cumulative cases before preprocessing
 - Require non-negative cumulative cases before preprocessing

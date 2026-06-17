@@ -117,8 +117,12 @@ def load_counties(
         raise ValueError("County data must contain exactly one cases column.")
     if counties.empty:
         raise ValueError("County data must contain at least one case row.")
-    if not pd.api.types.is_numeric_dtype(counties):
-        raise ValueError("County case totals must be numeric.")
+    if (
+        not pd.api.types.is_numeric_dtype(counties.dtype)
+        or pd.api.types.is_bool_dtype(counties.dtype)
+        or pd.api.types.is_complex_dtype(counties.dtype)
+    ):
+        raise ValueError("County case totals must use a real numeric, non-boolean dtype.")
     if not np.isfinite(counties.to_numpy(dtype=float)).all():
         raise ValueError("County case totals must be finite.")
     if (counties < 0).any():

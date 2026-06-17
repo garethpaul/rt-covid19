@@ -44,6 +44,8 @@ so malformed numerical inputs fail before posterior calculations.
 Model inputs must also keep one-dimensional, non-missing, unique, increasing
 case indexes so duplicate or reordered observations cannot create ambiguous
 rolling windows or posterior columns.
+County ingestion must reject values that are not real numeric, non-boolean
+county case totals before coercion can disguise invalid source data.
 Case preprocessing must require real numeric, non-boolean cumulative cases and
 must require finite cumulative cases and non-negative cumulative cases so
 booleans, lossy complex coercions, non-finite values, and impossible negative
