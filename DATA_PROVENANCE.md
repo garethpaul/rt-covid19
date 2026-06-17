@@ -52,8 +52,9 @@ render plots in headless environments without requiring an interactive display.
 
 The notebook:
 
-- reads county, date, and case-count columns;
-- indexes the data by county and date;
+- reads state, county, date, and case-count columns;
+- preserves state-qualified county identity in a unique, non-missing
+  `(state, county, date)` index;
 - starts each county after the last zero-case day;
 - applies Gaussian smoothing to reduce reporting noise before estimating Rt.
 

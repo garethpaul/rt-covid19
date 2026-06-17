@@ -31,6 +31,45 @@ class RtCovid19Tests(unittest.TestCase):
         self.assertIsInstance(counties, pd.Series)
         self.assertEqual([1, 3], counties.tolist())
         self.assertEqual("cases", counties.name)
+        self.assertEqual(["state", "county", "date"], counties.index.names)
+
+    def test_load_counties_keeps_same_named_counties_separate(self):
+        source = io.StringIO(
+            "date,county,state,fips,cases,deaths\n"
+            "2020-03-05,Douglas,Colorado,1,1,0\n"
+            "2020-03-05,Douglas,Nebraska,2,13,0\n"
+        )
+
+        counties = rt_covid19.load_counties(source)
+
+        self.assertEqual(1, counties.loc[("Colorado", "Douglas", "2020-03-05")])
+        self.assertEqual(13, counties.loc[("Nebraska", "Douglas", "2020-03-05")])
+
+    def test_load_counties_rejects_ambiguous_identity(self):
+        invalid_indexes = (
+            pd.MultiIndex.from_tuples(
+                [("Alpha", pd.Timestamp("2020-01-01"))], names=["county", "date"]
+            ),
+            pd.MultiIndex.from_tuples(
+                [(None, "Alpha", pd.Timestamp("2020-01-01"))],
+                names=["state", "county", "date"],
+            ),
+            pd.MultiIndex.from_tuples(
+                [
+                    ("CA", "Alpha", pd.Timestamp("2020-01-01")),
+                    ("CA", "Alpha", pd.Timestamp("2020-01-01")),
+                ],
+                names=["state", "county", "date"],
+            ),
+        )
+        for index in invalid_indexes:
+            with self.subTest(index=index):
+                counties = pd.Series([1] * len(index), index=index, name="cases")
+                with mock.patch("rt_covid19._read_counties", return_value=counties):
+                    with self.assertRaisesRegex(
+                        ValueError, "unique, non-missing, and named state, county, date"
+                    ):
+                        rt_covid19.load_counties(io.StringIO(""))
 
     def test_load_counties_rejects_negative_totals(self):
         source = io.StringIO("date,county,state,fips,cases,deaths\n2020-01-01,Alpha,CA,1,-1,0\n")
@@ -59,7 +98,14 @@ class RtCovid19Tests(unittest.TestCase):
         ):
             rt_covid19.load_counties(string_source)
 
-        complex_counties = pd.Series([1 + 1j, 2 + 2j], dtype=np.complex128)
+        index = pd.MultiIndex.from_tuples(
+            [
+                ("CA", "Alpha", pd.Timestamp("2020-01-01")),
+                ("CA", "Alpha", pd.Timestamp("2020-01-02")),
+            ],
+            names=["state", "county", "date"],
+        )
+        complex_counties = pd.Series([1 + 1j, 2 + 2j], index=index, dtype=np.complex128)
         with mock.patch("rt_covid19._read_counties", return_value=complex_counties):
             with self.assertRaisesRegex(
                 ValueError, "County case totals must use a real numeric, non-boolean dtype"
@@ -69,7 +115,14 @@ class RtCovid19Tests(unittest.TestCase):
     def test_load_counties_accepts_real_numeric_dtypes(self):
         for dtype in (np.int64, np.float32):
             with self.subTest(dtype=dtype):
-                expected = pd.Series([1, 3], index=[2, 1], name="cases", dtype=dtype)
+                index = pd.MultiIndex.from_tuples(
+                    [
+                        ("CA", "Alpha", pd.Timestamp("2020-01-02")),
+                        ("CA", "Alpha", pd.Timestamp("2020-01-01")),
+                    ],
+                    names=["state", "county", "date"],
+                )
+                expected = pd.Series([1, 3], index=index, name="cases", dtype=dtype)
                 with mock.patch("rt_covid19._read_counties", return_value=expected):
                     counties = rt_covid19.load_counties(io.StringIO(""))
 

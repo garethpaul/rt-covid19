@@ -40,8 +40,8 @@ def _validate_case_index(series, label):
 def _read_counties(source):
     return pd.read_csv(
         source,
-        usecols=[0, 1, 4],
-        index_col=["county", "date"],
+        usecols=["date", "county", "state", "cases"],
+        index_col=["state", "county", "date"],
         parse_dates=["date"],
     ).squeeze("columns")
 
@@ -92,7 +92,7 @@ def load_counties(
     timeout=DEFAULT_DOWNLOAD_TIMEOUT,
     max_download_bytes=DEFAULT_MAX_DOWNLOAD_BYTES,
 ):
-    """Load county case totals as a date-indexed Series."""
+    """Load county case totals as a state/county/date-indexed Series."""
     if not isinstance(timeout, (int, float)) or isinstance(timeout, bool):
         raise ValueError("Download timeout must be a positive finite number.")
     if not math.isfinite(timeout) or timeout <= 0:
@@ -117,6 +117,16 @@ def load_counties(
         raise ValueError("County data must contain exactly one cases column.")
     if counties.empty:
         raise ValueError("County data must contain at least one case row.")
+    index = counties.index
+    if (
+        not isinstance(index, pd.MultiIndex)
+        or list(index.names) != ["state", "county", "date"]
+        or index.to_frame(index=False).isna().any().any()
+        or not index.is_unique
+    ):
+        raise ValueError(
+            "County data index must be unique, non-missing, and named state, county, date."
+        )
     if (
         not pd.api.types.is_numeric_dtype(counties.dtype)
         or pd.api.types.is_bool_dtype(counties.dtype)

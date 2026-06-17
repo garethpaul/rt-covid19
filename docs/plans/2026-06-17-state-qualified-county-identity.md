@@ -1,12 +1,12 @@
 ---
 title: State-Qualified County Identity
-status: in_progress
+status: completed
 date: 2026-06-17
 ---
 
 # State-Qualified County Identity
 
-## Status: In Progress
+## Status: Completed
 
 ## Priority
 
@@ -87,8 +87,24 @@ Colorado and Nebraska on the same date with different totals.
 
 ## Work Completed
 
-- Pending implementation.
+- Retained state in county CSV parsing and enforced a unique, non-missing
+  `(state, county, date)` index before case dtype and value validation.
+- Qualified the notebook's Marin example and California batch processing by
+  state while preserving date-only inputs to the existing model helpers.
+- Added same-name county separation and invalid identity regressions plus
+  mutation-sensitive source, notebook, guidance, and completed-plan contracts.
 
 ## Verification Completed
 
-- Pending implementation and validation.
+- The focused county identity tests passed, and the complete 34-test synthetic model
+  suite passed in the pinned Python 3.12 environment.
+- Ruff format and lint, notebook JSON, `pip check`, and `pip-audit` passed with
+  no broken requirements or known vulnerabilities.
+- The isolated `make check` passed from the repository and through the absolute
+  Makefile path from an external directory.
+- Eight hostile county identity mutations were rejected across state parsing,
+  exact index names, missing labels, uniqueness, notebook selection and
+  grouping, focused regression registration, and guidance.
+- Exact diff, artifact, credential, conflict, mode, binary, large-file,
+  dependency, workflow, and upstream audits passed with only the ten intended
+  paths; generated caches were removed explicitly before the final gate.

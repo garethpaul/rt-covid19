@@ -2,6 +2,8 @@
 
 ## 2026-06-17
 
+- Preserved state-qualified county identity through ingestion and notebook
+  selection so same-name counties in different states remain separate series.
 - Required real numeric, non-boolean county case totals at ingestion, rejecting
   boolean and complex values before float conversion.
 

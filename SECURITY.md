@@ -46,6 +46,9 @@ case indexes so duplicate or reordered observations cannot create ambiguous
 rolling windows or posterior columns.
 County ingestion must reject values that are not real numeric, non-boolean
 county case totals before coercion can disguise invalid source data.
+County ingestion must preserve state-qualified county identity with a unique,
+non-missing `(state, county, date)` index so distinct same-name counties cannot
+be combined into one model input.
 Case preprocessing must require real numeric, non-boolean cumulative cases and
 must require finite cumulative cases and non-negative cumulative cases so
 booleans, lossy complex coercions, non-finite values, and impossible negative

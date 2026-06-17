@@ -33,6 +33,7 @@ CUMULATIVE_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-numeric-dt
 CUMULATIVE_CASE_VALUE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-value-validation.md"
 CUMULATIVE_CASE_FINITE_PLAN = DOCS_PLANS / "2026-06-16-cumulative-case-finite-regression.md"
 COUNTY_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-17-county-case-numeric-dtype.md"
+COUNTY_IDENTITY_PLAN = DOCS_PLANS / "2026-06-17-state-qualified-county-identity.md"
 
 DATA_SOURCE_COMMIT = "62ef34cfcb60214be873a38d73619da9ea57d50b"
 DATA_SOURCE_URL = (
@@ -280,6 +281,12 @@ def main():
             "pd.api.types.is_bool_dtype(",
             "pd.api.types.is_complex_dtype(",
             'raise ValueError("Smoothed cases must use a real numeric, non-boolean dtype.")',
+            'usecols=["date", "county", "state", "cases"]',
+            'index_col=["state", "county", "date"]',
+            'list(index.names) != ["state", "county", "date"]',
+            "index.to_frame(index=False).isna().any().any()",
+            "or not index.is_unique",
+            '"County data index must be unique, non-missing, and named state, county, date."',
             ').squeeze("columns")',
         ):
             if contract not in model_text:
@@ -298,11 +305,12 @@ def main():
         load_end = model_text.find("\ndef prepare_cases(", load_start)
         load_source = model_text[load_start:load_end]
         county_dtype_check = load_source.find("pd.api.types.is_numeric_dtype(counties.dtype)")
+        county_identity_check = load_source.find('list(index.names) != ["state", "county", "date"]')
         county_bool_check = load_source.find("pd.api.types.is_bool_dtype(counties.dtype)")
         county_complex_check = load_source.find("pd.api.types.is_complex_dtype(counties.dtype)")
         county_conversion = load_source.find("counties.to_numpy(dtype=float)")
         if not (
-            0 <= county_dtype_check < county_conversion
+            0 <= county_identity_check < county_dtype_check < county_conversion
             and 0 <= county_bool_check < county_conversion
             and 0 <= county_complex_check < county_conversion
             and 'raise ValueError("County case totals must use a real numeric, non-boolean dtype.")'
@@ -404,6 +412,11 @@ def main():
         "def test_load_counties_verifies_remote_snapshot_before_parsing(self):",
         "def test_load_counties_rejects_remote_snapshot_size_mismatch_before_parsing(self):",
         "def test_load_counties_rejects_remote_snapshot_digest_mismatch_before_parsing(self):",
+        "def test_load_counties_keeps_same_named_counties_separate(self):",
+        "def test_load_counties_rejects_ambiguous_identity(self):",
+        '("Colorado", "Douglas", "2020-03-05")',
+        '("Nebraska", "Douglas", "2020-03-05")',
+        'names=["state", "county", "date"]',
         "read_counties.assert_not_called()",
     ):
         if contract not in model_tests_text:
@@ -515,6 +528,10 @@ def main():
     for doc_name, doc_text in county_case_docs.items():
         if "real numeric, non-boolean county case totals" not in " ".join(doc_text.split()):
             failures.append(f"{doc_name} must document real numeric county case totals")
+
+    for doc_name, doc_text in county_case_docs.items():
+        if "state-qualified county identity" not in " ".join(doc_text.split()).lower():
+            failures.append(f"{doc_name} must document state-qualified county identity")
 
     snapshot_docs = dict(hdi_docs)
     snapshot_docs["SECURITY.md"] = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
@@ -738,6 +755,24 @@ def main():
         if str(COUNTY_CASE_DTYPE_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(f"README.md must reference {COUNTY_CASE_DTYPE_PLAN.relative_to(ROOT)}")
 
+    if COUNTY_IDENTITY_PLAN.exists():
+        county_identity_plan = COUNTY_IDENTITY_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "Status: Completed",
+            "focused county identity tests passed",
+            "complete 34-test synthetic model",
+            "isolated `make check` passed",
+            "hostile county identity mutations were rejected",
+            "Exact diff",
+        ):
+            if evidence not in county_identity_plan:
+                failures.append(
+                    f"{COUNTY_IDENTITY_PLAN.relative_to(ROOT)} "
+                    f"must record verification evidence {evidence!r}"
+                )
+        if str(COUNTY_IDENTITY_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(f"README.md must reference {COUNTY_IDENTITY_PLAN.relative_to(ROOT)}")
+
     if notebook:
         language_info = notebook.get("metadata", {}).get("language_info", {})
         kernel_version = language_info.get("version", "")
@@ -808,6 +843,14 @@ def main():
             failures.append("Rt-covid19.ipynb must import the tested model helpers")
         if "counties = load_counties()" not in code_sources:
             failures.append("Rt-covid19.ipynb must load county data through load_counties")
+        for contract in (
+            "cases = counties.xs((state_name, county_name), level=('state', 'county'))",
+            "state_counties = counties.xs(target_state, level='state', drop_level=False)",
+            "counties_to_process.groupby(level=['state', 'county'])",
+            "cases = cases.droplevel(['state', 'county'])",
+        ):
+            if contract not in code_sources:
+                failures.append(f"Rt-covid19.ipynb must keep county identity contract: {contract}")
 
     if "not current public-health guidance" not in readme_text.lower():
         failures.append(

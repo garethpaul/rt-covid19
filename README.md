@@ -95,6 +95,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   centralized in `rt_covid19.load_counties`.
 - County ingestion requires real numeric, non-boolean county case totals before
   finite and non-negative value checks.
+- County ingestion preserves state-qualified county identity with a unique,
+  non-missing `(state, county, date)` index so same-name counties cannot merge.
 - `make check` also requires NYT commit
   `62ef34cfcb60214be873a38d73619da9ea57d50b`, the 104,795,654-byte snapshot,
   and SHA-256 `dcb2715a71aaa2c9635f5b44594731bbba708c22fb202247790672e492a07ac0`
@@ -183,6 +185,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   regression coverage of finite cumulative cases.
 - See `docs/plans/2026-06-17-county-case-numeric-dtype.md` for real numeric,
   non-boolean county case totals at the ingestion boundary.
+- See `docs/plans/2026-06-17-state-qualified-county-identity.md` for
+  state-qualified county identity at ingestion and notebook selection.
 
 ## Contributing
 
