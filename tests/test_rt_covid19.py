@@ -353,6 +353,7 @@ class RtCovid19Tests(unittest.TestCase):
             (np.array([[0.0, 1.0]]), "non-empty, finite one-dimensional"),
             (np.array([0.0, np.nan]), "non-empty, finite one-dimensional"),
             (np.array([0.0, np.inf]), "non-empty, finite one-dimensional"),
+            (np.array([False, True]), "real numeric, non-boolean"),
             (np.array([-0.1, 0.0, 0.1]), "non-negative and strictly increasing"),
             (np.array([0.0, 0.5, 0.5, 1.0]), "non-negative and strictly increasing"),
         )
@@ -401,6 +402,21 @@ class RtCovid19Tests(unittest.TestCase):
                     "finite real number strictly between zero and one",
                 ):
                     rt_covid19.highest_density_interval(pmf, p=probability)
+
+    def test_highest_density_interval_rejects_non_real_numeric_mass_dtypes(self):
+        invalid_pmfs = (
+            pd.Series([True, False], index=[0.0, 1.0]),
+            pd.Series(["0.1", "0.9"], index=[0.0, 1.0]),
+            pd.Series(np.array([0.1 + 0.0j, 0.9 + 0.0j]), index=[0.0, 1.0]),
+        )
+
+        for pmf in invalid_pmfs:
+            with self.subTest(dtype=pmf.dtype):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    "PMF values must use a real numeric, non-boolean dtype",
+                ):
+                    rt_covid19.highest_density_interval(pmf, p=0.8)
 
     def test_highest_density_interval_uses_numeric_grid_width(self):
         pmf = pd.Series([0.1, 0.4, 0.25, 0.25], index=[0, 100, 101, 102])

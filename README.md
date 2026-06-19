@@ -103,6 +103,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   before remote CSV parsing.
 - `make check` also requires numeric, finite, strictly increasing HDI grids
   before interval endpoints are returned.
+- HDI probability masses must use real numeric, non-boolean values before
+  interval selection.
 - HDI probability mass must be a finite real number strictly between zero and
   one; booleans and non-numeric values are rejected at the model boundary.
 - `make check` also requires HDI candidates on nonuniform grids to be compared

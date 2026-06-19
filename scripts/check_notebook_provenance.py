@@ -274,6 +274,13 @@ def main():
             "pmf.columns.nlevels != 1",
             "pmf.columns.hasnans",
             "not pmf.columns.is_unique",
+            "pd.api.types.is_numeric_dtype(pmf.dtype)",
+            "pd.api.types.is_bool_dtype(pmf.dtype)",
+            "pd.api.types.is_complex_dtype(pmf.dtype)",
+            'raise ValueError("PMF values must use a real numeric, non-boolean dtype.")',
+            "raw_r_t_range = np.asarray(r_t_range, dtype=object)",
+            "isinstance(value, (bool, np.bool_))",
+            'raise ValueError("Rt range must use real numeric, non-boolean values.")',
             "if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():",
             "if (r_t_range < 0).any() or (np.diff(r_t_range) <= 0).any():",
             'raise ValueError("Rt range must be non-negative and strictly increasing.")',
@@ -327,6 +334,8 @@ def main():
         bool_check = posterior_source.find("pd.api.types.is_bool_dtype(series.dtype)")
         complex_check = posterior_source.find("pd.api.types.is_complex_dtype(series.dtype)")
         conversion = posterior_source.find("series.to_numpy(dtype=float)")
+        rt_bool_check = posterior_source.find("raw_r_t_range = np.asarray(r_t_range, dtype=object)")
+        rt_conversion = posterior_source.find("r_t_range = np.asarray(r_t_range, dtype=float)")
         if not (
             0 <= dtype_check < conversion
             and 0 <= bool_check < conversion
@@ -334,6 +343,30 @@ def main():
         ):
             failures.append(
                 "get_posteriors must reject non-real and boolean dtypes before float conversion"
+            )
+        if not (
+            0 <= rt_bool_check < rt_conversion
+            and 'raise ValueError("Rt range must use real numeric, non-boolean values.")'
+            in posterior_source
+        ):
+            failures.append("get_posteriors must reject boolean Rt grids before float conversion")
+
+        hdi_start = model_text.find("def highest_density_interval(")
+        hdi_source = model_text[hdi_start:]
+        pmf_dtype_check = hdi_source.find("pd.api.types.is_numeric_dtype(pmf.dtype)")
+        pmf_bool_check = hdi_source.find("pd.api.types.is_bool_dtype(pmf.dtype)")
+        pmf_complex_check = hdi_source.find("pd.api.types.is_complex_dtype(pmf.dtype)")
+        pmf_conversion = hdi_source.find("values = pmf.to_numpy(dtype=float)")
+        if not (
+            0 <= pmf_dtype_check < pmf_conversion
+            and 0 <= pmf_bool_check < pmf_conversion
+            and 0 <= pmf_complex_check < pmf_conversion
+            and 'raise ValueError("PMF values must use a real numeric, non-boolean dtype.")'
+            in hdi_source
+        ):
+            failures.append(
+                "highest_density_interval must reject non-real and boolean PMF values "
+                "before float conversion"
             )
 
         prepare_start = model_text.find("def prepare_cases(")
@@ -390,6 +423,7 @@ def main():
         "np.array([[0.0, 1.0]])",
         "np.array([0.0, np.nan])",
         "np.array([0.0, np.inf])",
+        "np.array([False, True])",
         "np.array([-0.1, 0.0, 0.1])",
         "np.array([0.0, 0.5, 0.5, 1.0])",
         "with self.assertRaisesRegex(ValueError, message):",
@@ -398,6 +432,8 @@ def main():
         "def test_highest_density_interval_preserves_earliest_equal_width(self):",
         "def test_highest_density_interval_preserves_valid_frame_column_order(self):",
         "def test_highest_density_interval_validates_probability_type_and_range(self):",
+        "def test_highest_density_interval_rejects_non_real_numeric_mass_dtypes(self):",
+        '"PMF values must use a real numeric, non-boolean dtype"',
         '"finite real number strictly between zero and one"',
         "def test_highest_density_interval_rejects_empty_frames(self):",
         "def test_highest_density_interval_rejects_ambiguous_frame_columns(self):",

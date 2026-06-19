@@ -75,4 +75,5 @@ inputs. The defaults do not encode current policy or public-health status.
 This repository is a historical educational analysis, not current public-health guidance.
 Results should be interpreted with the notebook's model assumptions, uncertainty
 intervals, stale-source risk, and reporting-noise limitations in mind. Tested
-interval summaries require numeric, finite, strictly increasing HDI grids.
+interval summaries require real numeric, non-boolean probability masses on
+numeric, finite, strictly increasing HDI grids.

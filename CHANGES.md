@@ -6,6 +6,8 @@
   selection so same-name counties in different states remain separate series.
 - Required real numeric, non-boolean county case totals at ingestion, rejecting
   boolean and complex values before float conversion.
+- Required real numeric, non-boolean HDI probability masses before interval
+  selection, rejecting boolean, string, and complex values before coercion.
 
 ## 2026-06-16
 

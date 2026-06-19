@@ -188,6 +188,10 @@ def get_posteriors(series, sigma=0.15, r_t_range=R_T_RANGE):
     if not math.isfinite(sigma) or sigma <= 0:
         raise ValueError("Sigma must be a positive finite number.")
 
+    raw_r_t_range = np.asarray(r_t_range, dtype=object)
+    if any(isinstance(value, (bool, np.bool_)) for value in raw_r_t_range.ravel()):
+        raise ValueError("Rt range must use real numeric, non-boolean values.")
+
     r_t_range = np.asarray(r_t_range, dtype=float)
     if r_t_range.ndim != 1 or r_t_range.size == 0 or not np.isfinite(r_t_range).all():
         raise ValueError("Rt range must be a non-empty, finite one-dimensional array.")
@@ -240,6 +244,12 @@ def highest_density_interval(pmf, p=0.9):
         )
     if not isinstance(pmf, pd.Series) or pmf.empty:
         raise ValueError("PMF must be a non-empty pandas Series or DataFrame.")
+    if (
+        not pd.api.types.is_numeric_dtype(pmf.dtype)
+        or pd.api.types.is_bool_dtype(pmf.dtype)
+        or pd.api.types.is_complex_dtype(pmf.dtype)
+    ):
+        raise ValueError("PMF values must use a real numeric, non-boolean dtype.")
 
     values = pmf.to_numpy(dtype=float)
     if not np.isfinite(values).all() or (values < 0).any() or values.sum() <= 0:
