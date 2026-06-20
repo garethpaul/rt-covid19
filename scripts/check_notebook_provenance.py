@@ -220,7 +220,11 @@ def main():
         if DEV_REQUIREMENTS.exists()
         else set()
     )
-    if dev_requirements != {"pip-audit==2.10.0", "ruff==0.15.16"}:
+    if dev_requirements != {
+        "msgpack==1.2.1",
+        "pip-audit==2.10.0",
+        "ruff==0.15.16",
+    }:
         failures.append("requirements-dev.txt must keep the verified quality-tool pins")
 
     model_text = MODEL.read_text(encoding="utf-8") if MODEL.exists() else ""

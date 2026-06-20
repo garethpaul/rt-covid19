@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-06-20
+
+- Pinned transitive `msgpack` to 1.2.1 in the verification toolchain, removing
+  the GHSA-6v7p-g79w-8964 finding reported through `pip-audit`'s CacheControl
+  dependency.
+- Extended the provenance contract and maintenance documentation so removal or
+  downgrade of the patched pin fails closed.
+
 ## 2026-06-17
 
 - Preserved state-qualified county identity through ingestion and notebook
