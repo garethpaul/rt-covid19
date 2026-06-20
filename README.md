@@ -51,6 +51,10 @@ python3 -m pip install -r requirements.txt
 python3 -m pip install -r requirements-dev.txt
 ```
 
+The development requirements pin `msgpack 1.2.1` across `pip-audit`'s
+CacheControl dependency so the verification environment does not resolve the
+vulnerable 1.1.2 release.
+
 The setup commands above are derived from repository files. Legacy mobile, Python, or JavaScript samples may require older SDKs or package versions than a modern workstation uses by default.
 
 ## Running or Using the Project
@@ -189,6 +193,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   non-boolean county case totals at the ingestion boundary.
 - See `docs/plans/2026-06-17-state-qualified-county-identity.md` for
   state-qualified county identity at ingestion and notebook selection.
+- See `docs/plans/2026-06-20-msgpack-security-pin.md` for the patched
+  verification-tool dependency boundary.
 
 ## Contributing
 

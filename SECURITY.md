@@ -38,6 +38,9 @@ For web services, APIs, sockets, or scraping workflows, prioritize reports invol
 Hosted verification uses immutable action commits, a fixed runner image,
 exact direct dependency pins, binary-only installation, `pip check`, and
 `pip-audit`.
+The development dependency graph pins `msgpack 1.2.1` across `pip-audit`'s
+CacheControl dependency so GHSA-6v7p-g79w-8964 cannot remain in the verification
+environment through a permissive transitive range.
 
 Custom Rt model grids must remain finite, non-negative, and strictly increasing
 so malformed numerical inputs fail before posterior calculations.
