@@ -4,6 +4,8 @@
 
 - Hardened Make verification for spaced paths and caller-controlled root,
   Python, shell, preload, and Makefile-list authority without changing the model.
+- Removed platform-specific root helpers and rejected extra Makefiles in either
+  `-f` ordering before repository checks run.
 
 ## 2026-06-20
 

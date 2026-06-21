@@ -79,4 +79,9 @@ grep -Fq "MAKEFILES must be empty" "$TEMP_ROOT/preloaded.out"
 EARLIER="$TEMP_ROOT/earlier.mk"; printf '%s\n' '# earlier' >"$EARLIER"
 if (cd "$CONTROL_DIR" && /usr/bin/make --no-print-directory --file "$EARLIER" --file "$MAKEFILE" check) >"$TEMP_ROOT/multiple.out" 2>&1; then exit 1; fi
 grep -Fq "repository Makefile path could not be resolved" "$TEMP_ROOT/multiple.out"
-printf '%s\n' "Makefile root tests passed: 63 executed target/authority cases, 2 MAKEFILE_LIST rejections, 1 MAKEFILES rejection, and 1 multi-Makefile rejection"
+LATER="$TEMP_ROOT/later.mk"; printf '%s\n' '# later' >"$LATER"
+rm -f "$COMMAND_LOG"
+if (cd "$CONTROL_DIR" && PATH="$CHECKOUT/bin:$PATH" RT_COVID19_COMMAND_LOG="$COMMAND_LOG" /usr/bin/make --no-print-directory --file "$MAKEFILE" --file "$LATER" check) >"$TEMP_ROOT/later.out" 2>&1; then exit 1; fi
+grep -Fq "multiple -f Makefiles are not supported" "$TEMP_ROOT/later.out"
+[ ! -e "$COMMAND_LOG" ] || { printf '%s\n' "later multiple -f reached a quality command" >&2; exit 1; }
+printf '%s\n' "Makefile root tests passed: 63 executed target/authority cases, 2 MAKEFILE_LIST rejections, 1 MAKEFILES rejection, and 2 multi-Makefile rejections"

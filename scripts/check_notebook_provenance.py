@@ -647,14 +647,15 @@ def main():
         "override PYTHON := python3",
         "$(error MAKEFILES must be empty; repository verification requires this Makefile to be loaded alone)",
         "$(error MAKEFILE_LIST must not be overridden)",
-        "override ROOT := $(shell path=",
-        '[ -f "$$path" ] || exit 1',
-        "export ROOT",
-        "$(error repository Makefile path could not be resolved)",
-        '"$$ROOT/scripts/test-makefile-root.sh"',
+        "override REPOSITORY_MAKEFILE := $(value MAKEFILE_LIST)",
+        "override CURRENT_MAKEFILE_LIST = $(value MAKEFILE_LIST)",
+        "multiple -f Makefiles are not supported",
+        "makefile=$${REPOSITORY_MAKEFILE# }",
+        "override define RUN_IN_REPO",
+        "$(RUN_IN_REPO) /bin/sh scripts/test-makefile-root.sh",
         "dependencies:",
-        "$(PYTHON) -m pip check",
-        '$(PYTHON) -m pip_audit -r "$$ROOT/requirements.txt"',
+        "$(RUN_IN_REPO) $(PYTHON) -m pip check",
+        "$(RUN_IN_REPO) $(PYTHON) -m pip_audit -r requirements.txt",
         "check: verify dependencies",
     ):
         if contract not in makefile_text:
@@ -681,7 +682,7 @@ def main():
             "63 executed target, root, shell, and Python authority cases",
             "Both `MAKEFILE_LIST` override channels",
             "`MAKEFILES` preload",
-            "ambiguous multiple-Makefile invocation failed closed",
+            "both `-f` orderings failed closed",
         ):
             if evidence not in plan:
                 failures.append(
