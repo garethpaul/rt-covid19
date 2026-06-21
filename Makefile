@@ -1,24 +1,60 @@
-override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+.DEFAULT_GOAL := check
 
-PYTHON ?= python3
+.PHONY: build check dependencies lint root-test test verify
 
-.PHONY: build check dependencies lint test verify
+override SHELL := /bin/sh
+override .SHELLFLAGS := -c
+override PYTHON := python3
+ifneq ($(strip $(MAKEFILES)),)
+$(error MAKEFILES must be empty; repository verification requires this Makefile to be loaded alone)
+endif
+override MAKEFILES :=
+ifneq ($(origin MAKEFILE_LIST),file)
+$(error MAKEFILE_LIST must not be overridden)
+endif
+override REPOSITORY_MAKEFILE := $(value MAKEFILE_LIST)
+override EXPECTED_MAKEFILE_LIST := $(value MAKEFILE_LIST)
+override CURRENT_MAKEFILE_LIST = $(value MAKEFILE_LIST)
+export REPOSITORY_MAKEFILE EXPECTED_MAKEFILE_LIST CURRENT_MAKEFILE_LIST
+override ROOT :=
+
+override define RUN_IN_REPO
+if [ "$$CURRENT_MAKEFILE_LIST" != "$$EXPECTED_MAKEFILE_LIST" ]; then \
+	printf '%s\n' 'multiple -f Makefiles are not supported' >&2; \
+	exit 1; \
+fi; \
+makefile=$${REPOSITORY_MAKEFILE# }; \
+if [ -z "$$makefile" ] || [ ! -f "$$makefile" ]; then \
+	printf '%s\n' 'repository Makefile path could not be resolved' >&2; \
+	exit 1; \
+fi; \
+case "$$makefile" in \
+	*/*) repository_directory=$${makefile%/*} ;; \
+	*) repository_directory=. ;; \
+esac; \
+ROOT=$$(CDPATH= cd -- "$$repository_directory" && pwd -P); \
+export ROOT; \
+cd "$$ROOT" &&
+endef
 
 lint:
-	$(PYTHON) "$(ROOT)/scripts/check_notebook_provenance.py"
-	cd "$(ROOT)" && $(PYTHON) -m ruff format --check .
-	cd "$(ROOT)" && $(PYTHON) -m ruff check .
+	$(RUN_IN_REPO) $(PYTHON) scripts/check_notebook_provenance.py
+	$(RUN_IN_REPO) $(PYTHON) -m ruff format --check .
+	$(RUN_IN_REPO) $(PYTHON) -m ruff check .
 
 test:
-	cd "$(ROOT)" && $(PYTHON) -m unittest discover -s tests -p "test*.py"
+	$(RUN_IN_REPO) $(PYTHON) -m unittest discover -s tests -p "test*.py"
 
 build:
-	$(PYTHON) -m json.tool "$(ROOT)/Rt-covid19.ipynb" >/dev/null
+	$(RUN_IN_REPO) $(PYTHON) -m json.tool Rt-covid19.ipynb >/dev/null
 
 dependencies:
-	$(PYTHON) -m pip check
-	$(PYTHON) -m pip_audit -r "$(ROOT)/requirements.txt" -r "$(ROOT)/requirements-dev.txt"
+	$(RUN_IN_REPO) $(PYTHON) -m pip check
+	$(RUN_IN_REPO) $(PYTHON) -m pip_audit -r requirements.txt -r requirements-dev.txt
 
-verify: lint test build
+root-test:
+	$(RUN_IN_REPO) /bin/sh scripts/test-makefile-root.sh
+
+verify: root-test lint test build
 
 check: verify dependencies

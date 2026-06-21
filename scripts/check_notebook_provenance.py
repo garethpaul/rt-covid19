@@ -26,6 +26,7 @@ HOSTED_VALIDATION_PLAN = DOCS_PLANS / "2026-06-10-hosted-validation-hardening.md
 HDI_GRID_PLAN = DOCS_PLANS / "2026-06-12-hdi-grid-validation.md"
 DATASET_INTEGRITY_PLAN = DOCS_PLANS / "2026-06-12-dataset-snapshot-integrity.md"
 MAKE_ROOT_PLAN = DOCS_PLANS / "2026-06-14-make-root-override-protection.md"
+SAFE_MAKE_AUTHORITY_PLAN = DOCS_PLANS / "2026-06-21-safe-make-authority.md"
 HDI_FRAME_PLAN = DOCS_PLANS / "2026-06-14-hdi-frame-column-integrity.md"
 HDI_PROBABILITY_PLAN = DOCS_PLANS / "2026-06-14-hdi-probability-validation.md"
 SMOOTHED_CASE_DTYPE_PLAN = DOCS_PLANS / "2026-06-15-smoothed-case-numeric-dtype.md"
@@ -640,23 +641,21 @@ def main():
         failures.append(".github/workflows/check.yml must match the approved verification policy")
 
     makefile_text = MAKEFILE.read_text(encoding="utf-8") if MAKEFILE.exists() else ""
-    root_declaration = "override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))"
-    root_assignments = [
-        line
-        for line in makefile_text.splitlines()
-        if re.match(r"^(?:override\s+)?ROOT\s*[:?+]?=", line)
-    ]
-    if not makefile_text.startswith(f"{root_declaration}\n") or root_assignments != [
-        root_declaration
-    ]:
-        failures.append(
-            "Makefile must define exactly one protected repository-derived ROOT declaration first"
-        )
     for contract in (
-        root_declaration,
+        "override SHELL := /bin/sh",
+        "override .SHELLFLAGS := -c",
+        "override PYTHON := python3",
+        "$(error MAKEFILES must be empty; repository verification requires this Makefile to be loaded alone)",
+        "$(error MAKEFILE_LIST must not be overridden)",
+        "override REPOSITORY_MAKEFILE := $(value MAKEFILE_LIST)",
+        "override CURRENT_MAKEFILE_LIST = $(value MAKEFILE_LIST)",
+        "multiple -f Makefiles are not supported",
+        "makefile=$${REPOSITORY_MAKEFILE# }",
+        "override define RUN_IN_REPO",
+        "$(RUN_IN_REPO) /bin/sh scripts/test-makefile-root.sh",
         "dependencies:",
-        "$(PYTHON) -m pip check",
-        '$(PYTHON) -m pip_audit -r "$(ROOT)/requirements.txt"',
+        "$(RUN_IN_REPO) $(PYTHON) -m pip check",
+        "$(RUN_IN_REPO) $(PYTHON) -m pip_audit -r requirements.txt",
         "check: verify dependencies",
     ):
         if contract not in makefile_text:
@@ -676,6 +675,23 @@ def main():
                 )
         if str(MAKE_ROOT_PLAN.relative_to(ROOT)) not in readme_text:
             failures.append(f"README.md must reference {MAKE_ROOT_PLAN.relative_to(ROOT)}")
+
+    if SAFE_MAKE_AUTHORITY_PLAN.exists():
+        plan = SAFE_MAKE_AUTHORITY_PLAN.read_text(encoding="utf-8")
+        for evidence in (
+            "63 executed target, root, shell, and Python authority cases",
+            "Both `MAKEFILE_LIST` override channels",
+            "`MAKEFILES` preload",
+            "both `-f` orderings failed closed",
+        ):
+            if evidence not in plan:
+                failures.append(
+                    f"{SAFE_MAKE_AUTHORITY_PLAN.relative_to(ROOT)} must record {evidence!r}"
+                )
+        if str(SAFE_MAKE_AUTHORITY_PLAN.relative_to(ROOT)) not in readme_text:
+            failures.append(
+                f"README.md must reference {SAFE_MAKE_AUTHORITY_PLAN.relative_to(ROOT)}"
+            )
 
     if HDI_FRAME_PLAN.exists():
         hdi_frame_plan = HDI_FRAME_PLAN.read_text(encoding="utf-8")

@@ -195,6 +195,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   state-qualified county identity at ingestion and notebook selection.
 - See `docs/plans/2026-06-20-msgpack-security-pin.md` for the patched
   verification-tool dependency boundary.
+- See `docs/plans/2026-06-21-safe-make-authority.md` for spaced-checkout root
+  resolution and fail-closed Make authority.
 
 ## Contributing
 
