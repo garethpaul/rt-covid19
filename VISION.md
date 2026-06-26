@@ -35,6 +35,8 @@ Priority:
 - Require real numeric, non-boolean cumulative cases before preprocessing
 - Require finite cumulative cases before preprocessing
 - Require non-negative cumulative cases before preprocessing
+- Preserve terminal zero-case runs while excluding zero-to-positive likelihood
+  transitions from model input
 - Require real numeric, non-boolean smoothed cases before posterior calculations
 - Keep Matplotlib configured for headless reproduction runs
 - Keep notebook, provenance, and runtime configuration URL references on HTTPS

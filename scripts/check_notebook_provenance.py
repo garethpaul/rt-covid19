@@ -384,6 +384,12 @@ def main():
         prepare_finite_check = prepare_source.find("np.isfinite(case_values).all()")
         prepare_negative_check = prepare_source.find("(case_values < 0).any()")
         prepare_difference = prepare_source.find("new_cases = cases.diff()")
+        prepare_positive_positions = prepare_source.find(
+            "positive_positions = np.flatnonzero(smoothed.gt(0).to_numpy())"
+        )
+        prepare_blocking_zeros = prepare_source.find(
+            "blocking_zeros = np.flatnonzero(smoothed.iloc[:final_positive].eq(0).to_numpy())"
+        )
         if not (
             0 <= prepare_dtype_check < prepare_conversion
             and 0 <= prepare_bool_check < prepare_conversion
@@ -404,6 +410,14 @@ def main():
             failures.append(
                 "prepare_cases must reject non-finite and negative cumulative values before differencing"
             )
+        if not (
+            prepare_difference < prepare_positive_positions < prepare_blocking_zeros
+            and "idx_start = len(smoothed)" in prepare_source
+            and "blocking_zeros[-1] + 1" in prepare_source
+        ):
+            failures.append(
+                "prepare_cases must preserve terminal zero runs while trimming zero-to-positive transitions"
+            )
 
     model_tests_text = MODEL_TESTS.read_text(encoding="utf-8") if MODEL_TESTS.exists() else ""
     for contract in (
@@ -412,6 +426,8 @@ def main():
         "def test_prepare_cases_rejects_negative_cumulative_values(self):",
         "def test_prepare_cases_rejects_non_finite_cumulative_values(self):",
         "def test_prepare_cases_preserves_non_negative_downward_revisions(self):",
+        "def test_prepare_cases_preserves_trailing_zero_case_days(self):",
+        "def test_prepare_cases_trims_zero_days_before_later_positive_days(self):",
         '"Cases must contain non-negative cumulative values"',
         '"Cases must contain finite values"',
         "for non_finite in (np.nan, np.inf, -np.inf):",
@@ -419,6 +435,12 @@ def main():
         "[0, 1, 3, -1, 5, 8, 12, 17]",
         "[0, 2, 5, 4, 7, 11, 16, 22]",
         "self.assertIn(-1.0, original.tolist())",
+        "[0, 1, 3, 6, 10, 10, 10, 10]",
+        "self.assertGreater(smoothed.iloc[0], 0)",
+        "self.assertEqual(smoothed.iloc[-1], 0)",
+        "[0, 0, 0, 0, 0, 0, 0, 10, 20, 30, 40]",
+        "self.assertEqual(smoothed.index[0], index[4])",
+        "self.assertTrue(smoothed.gt(0).all())",
         "def test_get_posteriors_rejects_ambiguous_indexes(self):",
         "def invalid_case_indexes():",
         "pd.Index([0, 0, 1])",

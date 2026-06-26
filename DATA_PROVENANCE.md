@@ -55,7 +55,8 @@ The notebook:
 - reads state, county, date, and case-count columns;
 - preserves state-qualified county identity in a unique, non-missing
   `(state, county, date)` index;
-- starts each county after the last zero-case day;
+- starts each county after the last zero-case day that is followed by a later
+  positive day, preserving terminal zero-case runs;
 - applies Gaussian smoothing to reduce reporting noise before estimating Rt.
 
 Reusable preprocessing and posterior helpers require one-dimensional,
