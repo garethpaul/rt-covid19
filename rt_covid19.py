@@ -163,8 +163,13 @@ def prepare_cases(cases):
         new_cases.rolling(7, win_type="gaussian", min_periods=1, center=True).mean(std=2).round()
     )
 
-    zeros = smoothed.index[smoothed.eq(0)]
-    idx_start = 0 if len(zeros) == 0 else smoothed.index.get_loc(zeros.max()) + 1
+    positive_positions = np.flatnonzero(smoothed.gt(0).to_numpy())
+    if len(positive_positions) == 0:
+        idx_start = len(smoothed)
+    else:
+        final_positive = positive_positions[-1]
+        blocking_zeros = np.flatnonzero(smoothed.iloc[:final_positive].eq(0).to_numpy())
+        idx_start = 0 if len(blocking_zeros) == 0 else blocking_zeros[-1] + 1
     smoothed = smoothed.iloc[idx_start:]
     return new_cases.loc[smoothed.index], smoothed
 

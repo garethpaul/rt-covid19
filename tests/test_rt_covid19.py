@@ -219,6 +219,27 @@ class RtCovid19Tests(unittest.TestCase):
         self.assertGreater(len(smoothed), 0)
         self.assertTrue(np.isfinite(smoothed).all())
 
+    def test_prepare_cases_preserves_trailing_zero_case_days(self):
+        index = pd.date_range("2020-01-01", periods=8)
+        cases = pd.Series([0, 1, 3, 6, 10, 10, 10, 10], index=index)
+
+        original, smoothed = rt_covid19.prepare_cases(cases)
+
+        self.assertEqual(original.index.tolist(), smoothed.index.tolist())
+        self.assertGreater(len(smoothed), 0)
+        self.assertGreater(smoothed.iloc[0], 0)
+        self.assertEqual(smoothed.iloc[-1], 0)
+
+    def test_prepare_cases_trims_zero_days_before_later_positive_days(self):
+        index = pd.date_range("2020-01-01", periods=11)
+        cases = pd.Series([0, 0, 0, 0, 0, 0, 0, 10, 20, 30, 40], index=index)
+
+        original, smoothed = rt_covid19.prepare_cases(cases)
+
+        self.assertEqual(original.index.tolist(), smoothed.index.tolist())
+        self.assertEqual(smoothed.index[0], index[4])
+        self.assertTrue(smoothed.gt(0).all())
+
     def test_prepare_cases_rejects_non_real_numeric_dtypes(self):
         index = pd.date_range("2020-01-01", periods=8)
         invalid_values = (

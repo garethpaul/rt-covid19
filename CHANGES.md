@@ -1,5 +1,25 @@
 # Changes
 
+## 2026-06-26
+
+- **Timestamp:** 2026-06-26 12:27:04 PDT.
+- **Priority:** Correctness of historical case preprocessing.
+- **Summary:** Preserve trailing zero-case days instead of discarding a
+  county's entire analyzable history after its final smoothed zero, while still
+  trimming zero days that precede a later positive likelihood input.
+- **Files:** `rt_covid19.py`, `tests/test_rt_covid19.py`,
+  `scripts/check_notebook_provenance.py`, `DATA_PROVENANCE.md`, `VISION.md`,
+  `CHANGES.md`, and
+  `docs/plans/2026-06-26-trailing-zero-case-preprocessing.md`.
+- **Tests:** Both focused boundary regressions and all 37 synthetic model tests
+  pass; `make check`, the external absolute-Makefile gate, dependency audit,
+  and old-cutoff mutation rejection also pass.
+- **Findings:** The previous last-zero cutoff returned empty inputs for a valid
+  cumulative series ending in three no-new-case days.
+- **Blockers:** None.
+- **Next action:** Monitor hosted checks and retain broader numerical fixtures
+  as the next model-maintenance priority.
+
 ## 2026-06-21
 
 - Hardened Make verification for spaced paths and caller-controlled root,
