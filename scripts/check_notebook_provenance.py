@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate notebook dependency and data-source documentation."""
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -77,7 +78,48 @@ jobs:
         run: "python -m pip install --only-binary=:all: -r requirements.txt -r requirements-dev.txt"
       - name: Run full verification
         run: make check
+      # Out-of-band observers. `make check` cannot be trusted to police its own wiring: if
+      # both the root-test and lint prerequisites were severed from `verify`, neither the
+      # gating observer nor the contract checker would run and `make check` would exit 0
+      # green. These steps invoke both directly, so a disconnected gate is still caught.
+      - name: Observe make check gating out of band
+        run: /bin/sh scripts/test-makefile-root.sh
+      - name: Observe repository contracts out of band
+        run: python scripts/check_notebook_provenance.py
 """
+
+# Whole-line Makefile contracts.
+#
+# A substring pin cannot see a neutered verdict: `... -m unittest ... || true` and make's
+# `-cmd` error-ignore prefix both still contain the pinned substring, and a severed
+# prerequisite list leaves every recipe line byte-identical. These lines are therefore
+# required to match EXACTLY, with no prefix and no suffix.
+#
+# Ordering note: this is a SOURCE scan, and a source scan only describes the EFFECTIVE
+# recipe once something proves make is not overriding it. scripts/test-makefile-root.sh
+# supplies that proof by executing every public alias and asserting each one dispatches a
+# quality runner and fails when that runner fails. The two checks are complementary and
+# ordered: the executed observer establishes source == effective, then these pins police
+# the source. Neither is sufficient alone.
+REQUIRED_MAKEFILE_LINES = (
+    "verify: root-test lint test build",
+    "check: verify dependencies",
+    "root-test:",
+    "\t$(RUN_IN_REPO) /bin/sh scripts/test-makefile-root.sh",
+    "\t$(RUN_IN_REPO) $(PYTHON) scripts/check_notebook_provenance.py",
+    "\t$(RUN_IN_REPO) $(PYTHON) -m ruff format --check .",
+    "\t$(RUN_IN_REPO) $(PYTHON) -m ruff check .",
+    '\t$(RUN_IN_REPO) $(PYTHON) -m unittest discover -s tests -p "test*.py"',
+    "\t$(RUN_IN_REPO) $(PYTHON) -m json.tool Rt-covid19.ipynb >/dev/null",
+    "\t$(RUN_IN_REPO) $(PYTHON) -m pip check",
+    "\t$(RUN_IN_REPO) $(PYTHON) -m pip_audit -r requirements.txt -r requirements-dev.txt",
+)
+
+# The root/authority observer is the only check that watches make actually execute and gate.
+# Its own body is therefore pinned by digest: presence pins on its invocation cannot tell a
+# real observer from a stub that prints the success banner and exits 0.
+ROOT_TEST_SCRIPT = ROOT / "scripts" / "test-makefile-root.sh"
+ROOT_TEST_SHA256 = "cc41f123eefda3346677ada6a69a0535edca9c6eb064eee39a2865e96e2f8a4e"
 
 IMPORT_TO_REQUIREMENT = {
     "IPython": "ipython",
@@ -642,6 +684,8 @@ def main():
         'python-version: "3.12"',
         "python -m pip install --only-binary=:all:",
         "run: make check",
+        "run: /bin/sh scripts/test-makefile-root.sh",
+        "run: python scripts/check_notebook_provenance.py",
     ):
         if contract not in workflow_text:
             failures.append(f"GitHub Actions workflow must keep contract: {contract}")
@@ -682,6 +726,25 @@ def main():
     ):
         if contract not in makefile_text:
             failures.append(f"Makefile must keep contract: {contract}")
+
+    makefile_lines = makefile_text.splitlines()
+    for required_line in REQUIRED_MAKEFILE_LINES:
+        if required_line not in makefile_lines:
+            failures.append(
+                f"Makefile must keep this line exactly, with no error-ignoring prefix or "
+                f"suffix and no severed prerequisite: {required_line!r}"
+            )
+
+    if not ROOT_TEST_SCRIPT.exists():
+        failures.append("scripts/test-makefile-root.sh is missing")
+    else:
+        observed_sha256 = hashlib.sha256(ROOT_TEST_SCRIPT.read_bytes()).hexdigest()
+        if observed_sha256 != ROOT_TEST_SHA256:
+            failures.append(
+                "scripts/test-makefile-root.sh does not match the reviewed observer digest "
+                f"(expected {ROOT_TEST_SHA256}, found {observed_sha256}). If you intentionally "
+                "changed the observer, update ROOT_TEST_SHA256 in this file to the new digest."
+            )
 
     if MAKE_ROOT_PLAN.exists():
         make_root_plan = MAKE_ROOT_PLAN.read_text(encoding="utf-8")
