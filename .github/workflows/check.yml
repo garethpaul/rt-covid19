@@ -32,3 +32,11 @@ jobs:
         run: "python -m pip install --only-binary=:all: -r requirements.txt -r requirements-dev.txt"
       - name: Run full verification
         run: make check
+      # Out-of-band observers. `make check` cannot be trusted to police its own wiring: if
+      # both the root-test and lint prerequisites were severed from `verify`, neither the
+      # gating observer nor the contract checker would run and `make check` would exit 0
+      # green. These steps invoke both directly, so a disconnected gate is still caught.
+      - name: Observe make check gating out of band
+        run: /bin/sh scripts/test-makefile-root.sh
+      - name: Observe repository contracts out of band
+        run: python scripts/check_notebook_provenance.py

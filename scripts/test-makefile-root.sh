@@ -17,6 +17,12 @@ cp "$ROOT_DIR/Makefile" "$MAKEFILE"
 cat >"$CHECKOUT/bin/python3" <<'EOF'
 #!/bin/sh
 printf '%s|%s|%s\n' "$PWD" "$0" "$*" >> "$RT_COVID19_COMMAND_LOG"
+if [ -n "${RT_COVID19_FAIL_PATTERN:-}" ]; then
+  case "$*" in
+    *"$RT_COVID19_FAIL_PATTERN"*) printf 'injected failure for python3 %s\n' "$*" >&2; exit 70 ;;
+  esac
+fi
+exit 0
 EOF
 cat >"$CHECKOUT/scripts/test-makefile-root.sh" <<'EOF'
 #!/bin/sh
@@ -84,4 +90,42 @@ rm -f "$COMMAND_LOG"
 if (cd "$CONTROL_DIR" && PATH="$CHECKOUT/bin:$PATH" RT_COVID19_COMMAND_LOG="$COMMAND_LOG" /usr/bin/make --no-print-directory --file "$MAKEFILE" --file "$LATER" check) >"$TEMP_ROOT/later.out" 2>&1; then exit 1; fi
 grep -Fq "multiple -f Makefiles are not supported" "$TEMP_ROOT/later.out"
 [ ! -e "$COMMAND_LOG" ] || { printf '%s\n' "later multiple -f reached a quality command" >&2; exit 1; }
+# Failure-injection propagation: prove each public alias actually INVOKES every quality
+# runner and GATES on its verdict. A presence pin cannot see a severed prerequisite, a
+# `cmd || true` suffix, or make's `-cmd` error-ignore prefix; executing the alias against a
+# runner that fails on demand sees all three, because the alias must fail with the runner.
+INJECTION_CASES=0
+assert_gate_propagates() {
+  target=$1 pattern=$2
+  rm -f "$COMMAND_LOG"
+  output="$TEMP_ROOT/injected.out"; set +e
+  (cd "$CONTROL_DIR" && PATH="$CHECKOUT/bin:$PATH" RT_COVID19_COMMAND_LOG="$COMMAND_LOG" \
+    RT_COVID19_FAIL_PATTERN="$pattern" \
+    /usr/bin/make --no-print-directory --file "$MAKEFILE" "$target") >"$output" 2>&1
+  result=$?; set -e
+  # The runner must actually be dispatched by this target, with these arguments.
+  if [ ! -s "$COMMAND_LOG" ] || ! grep -F -q -e "$pattern" "$COMMAND_LOG"; then
+    printf '%s\n' "make $target never invoked a quality runner matching '$pattern'" >&2
+    cat "$output" >&2
+    exit 1
+  fi
+  # ...and the target must fail because the runner failed.
+  if [ "$result" -eq 0 ]; then
+    printf '%s\n' "make $target ignored a failing '$pattern' runner and still exited 0" >&2
+    cat "$output" >&2
+    exit 1
+  fi
+  INJECTION_CASES=$((INJECTION_CASES + 1))
+}
+for target in check verify; do
+  assert_gate_propagates "$target" "scripts/check_notebook_provenance.py"
+  assert_gate_propagates "$target" "-m ruff format"
+  assert_gate_propagates "$target" "-m ruff check"
+  assert_gate_propagates "$target" "-m unittest"
+  assert_gate_propagates "$target" "-m json.tool"
+done
+assert_gate_propagates check "-m pip check"
+assert_gate_propagates check "-m pip_audit"
+[ "$INJECTION_CASES" -eq 12 ] || { printf '%s\n' "expected 12 injection cases, ran $INJECTION_CASES" >&2; exit 1; }
 printf '%s\n' "Makefile root tests passed: 63 executed target/authority cases, 2 MAKEFILE_LIST rejections, 1 MAKEFILES rejection, and 2 multi-Makefile rejections"
+printf '%s\n' "Gate propagation tests passed: $INJECTION_CASES injected runner failures each failed their alias"

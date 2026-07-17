@@ -197,6 +197,9 @@ When the required SDK or runtime is unavailable, use static checks and source re
   verification-tool dependency boundary.
 - See `docs/plans/2026-06-21-safe-make-authority.md` for spaced-checkout root
   resolution and fail-closed Make authority.
+- See `docs/plans/2026-07-17-gate-execution-and-gating-observation.md` for the
+  failure-injection evidence that `make check` executes every quality runner and
+  fails closed when one of them fails.
 
 ## Contributing
 
